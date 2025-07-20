@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>Lane Hopper</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #111;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    height: 100%;
+    width: 100%;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+  }
+
+  #game {
+    position: relative;
+    width: 100vw;
+    max-width: 220px;
+    height: 100vh;
+    max-height: 700px;
+    background: #222;
+    border: 3px solid #555;
+    border-radius: 12px;
+    margin: auto;
+    overflow: hidden;
+  }
+
+  .player-car, .obstacle {
+    position: absolute;
+    width: 30px;
+    height: 50px;
+    border-radius: 8px;
+  }
+
+  .player-car {
+    bottom: 20px;
+    transition: left 0.15s ease;
+  }
+
+  .obstacle {
+    top: -70px;
+  }
+
+  #scoreboard {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: bold;
+    font-size: 18px;
+    z-index: 2;
+  }
+
+  #bestscore {
+    position: absolute;
+    top: 35px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #bbb;
+    z-index: 2;
+  }
+
+  #taphint {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    opacity: 0.5;
+    z-index: 2;
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="scoreboard">Score: 0</div>
+  <div id="bestscore">Best: 0</div>
+  <div id="taphint">Tap / Click to switch lanes</div>
+  <div id="player" class="player-car"></div>
+</div>
+
+<script>
+(() => {
+  const game = document.getElementById('game');
+  const player = document.getElementById('player');
+  const scoreboard = document.getElementById('scoreboard');
+  const bestscoreElem = document.getElementById('bestscore');
+  const taphint = document.getElementById('taphint');
+
+  const laneWidth = 90;
+  const carWidth = 30;
+  const laneOffset = (laneWidth - carWidth) / 2;
+  const lanes = [laneOffset, laneWidth + laneOffset]; // two lanes centered
+
+  let playerLane = 0;
+  let obstacles = [];
+  let score = 0;
+  let bestScore = 0;
+  let speed = 1.6; // ✅ slightly faster base speed
+  let spawnInterval = 1800;
+  let lastSpawn = 0;
+  let lastFrameTime = 0;
+  let gameOver = false;
+  const maxSpeed = 6;
+
+  const carColors = ['#e74c3c','#3498db','#f1c40f','#2ecc71','#9b59b6','#e67e22','#1abc9c','#e84393'];
+  let currentSkinIndex = 0;
+
+  function setPlayerSkin(index) {
+    player.style.backgroundColor = carColors[index];
+    player.style.boxShadow = `0 0 10px ${carColors[index]}`;
+  }
+
+  function createObstacle() {
+    const obstacle = document.createElement('div');
+    obstacle.classList.add('obstacle');
+
+    const isCar = Math.random() < 0.7;
+    if (isCar) {
+      obstacle.dataset.type = 'car';
+      obstacle.style.backgroundColor = carColors[(currentSkinIndex + 3) % carColors.length];
+      obstacle.style.boxShadow = `0 0 10px ${carColors[(currentSkinIndex + 3) % carColors.length]}`;
+    } else {
+      obstacle.dataset.type = 'barrier';
+      obstacle.style.background = 'repeating-linear-gradient(45deg, #666, #666 8px, #999 8px, #999 16px)';
+      obstacle.style.boxShadow = '0 0 8px #888 inset';
+    }
+
+    obstacle.lane = Math.round(Math.random());
+    obstacle.style.left = lanes[obstacle.lane] + 'px';
+    obstacle.style.top = '-70px';
+
+    game.appendChild(obstacle);
+    obstacles.push(obstacle);
+  }
+
+  function updateObstacles(delta) {
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      const obs = obstacles[i];
+      let topPx = parseFloat(obs.style.top);
+      topPx += speed * delta;
+      obs.style.top = topPx + 'px';
+
+      if (topPx > game.clientHeight + 50) {
+        obs.remove();
+        obstacles.splice(i, 1);
+        score++;
+        scoreboard.textContent = 'Score: ' + score;
+
+        if (score > bestScore) {
+          bestScore = score;
+          localStorage.setItem('laneHopperBest', bestScore);
+          bestscoreElem.textContent = 'Best: ' + bestScore;
+        }
+
+        if (score % 10 === 0) {
+          currentSkinIndex = (currentSkinIndex + 1) % carColors.length;
+          setPlayerSkin(currentSkinIndex);
+        }
+
+        if (score % 5 === 0 && speed < maxSpeed) {
+          speed = Math.min(maxSpeed, speed + 0.11); // ✅ slightly faster acceleration
+          spawnInterval = Math.max(700, spawnInterval - 70);
+        }
+      }
+    }
+  }
+
+  function checkCollision() {
+    const playerRect = player.getBoundingClientRect();
+    for (const obs of obstacles) {
+      const obsRect = obs.getBoundingClientRect();
+      const overlap = !(playerRect.right < obsRect.left ||
+                        playerRect.left > obsRect.right ||
+                        playerRect.bottom < obsRect.top ||
+                        playerRect.top > obsRect.bottom);
+      if (overlap) return true;
+    }
+    return false;
+  }
+
+  function resetGame() {
+    obstacles.forEach(o => o.remove());
+    obstacles = [];
+    score = 0;
+    speed = 1.6;
+    spawnInterval = 1800;
+    currentSkinIndex = 0;
+    setPlayerSkin(currentSkinIndex);
+    playerLane = 0;
+    player.style.left = lanes[playerLane] + 'px';
+    scoreboard.textContent = 'Score: 0';
+    taphint.textContent = 'Tap / Click to switch lanes';
+    taphint.style.opacity = 1;
+    gameOver = false;
+    lastSpawn = 0;
+    lastFrameTime = 0;
+    requestAnimationFrame(gameLoop);
+  }
+
+  function gameLoop(time = 0) {
+    if (gameOver) return;
+
+    const delta = (time - lastFrameTime) / 16;
+    lastFrameTime = time;
+
+    if (time - lastSpawn > spawnInterval) {
+      createObstacle();
+      lastSpawn = time;
+    }
+
+    updateObstacles(delta);
+
+    if (checkCollision()) {
+      gameOver = true;
+      taphint.textContent = 'Game Over! Tap to restart';
+      taphint.style.opacity = 1;
+      return;
+    }
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  function switchLane() {
+    if (gameOver) {
+      resetGame();
+      return;
+    }
+    playerLane = 1 - playerLane;
+    player.style.left = lanes[playerLane] + 'px';
+  }
+
+  // Touch/click events
+  game.addEventListener('click', switchLane);
+  game.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    switchLane();
+  }, { passive: false });
+
+  // Init
+  bestScore = parseInt(localStorage.getItem('laneHopperBest')) || 0;
+  bestscoreElem.textContent = 'Best: ' + bestScore;
+  setPlayerSkin(currentSkinIndex);
+  player.style.left = lanes[playerLane] + 'px';
+
+  requestAnimationFrame(gameLoop);
+})();
+</script>
+</body>
+</html>

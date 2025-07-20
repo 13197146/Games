@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Magnet Ball 360°</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #111;
+    }
+    canvas {
+      display: block;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-family: sans-serif;
+      font-size: 18px;
+      z-index: 1;
+    }
+    #gameOver {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 32px;
+      font-family: sans-serif;
+      text-align: center;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <div id="gameOver">Game Over<br>Restarting...</div>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const hitSound = new Audio("https://freesound.org/data/previews/341/341695_5260877-lq.mp3");
+    hitSound.volume = 0.4;
+
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    const scoreDisplay = document.getElementById("score");
+    const gameOverDisplay = document.getElementById("gameOver");
+
+    window.addEventListener("resize", () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    let score = 0;
+    let highScore = localStorage.getItem("highScore") || 0;
+    let currentSpeed = 0.02;
+    const maxSpeed = 0.034;
+    const gravity = 0.35;
+    let paused = false;
+
+    class Magnet {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = 14;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "#ff4444";
+        ctx.fill();
+      }
+    }
+
+    class Ball {
+      constructor(magnet) {
+        this.length = 100;
+        this.angle = Math.random() * Math.PI * 2;
+        this.speed = currentSpeed;
+        this.rotation = this.angle;
+        this.released = false;
+        this.attachedMagnet = magnet;
+
+        this.x = magnet.x + Math.cos(this.angle) * this.length;
+        this.y = magnet.y + Math.sin(this.angle) * this.length;
+
+        this.vx = 0;
+        this.vy = 0;
+      }
+
+      update() {
+        if (!this.released) {
+          this.rotation += this.speed;
+          this.x = this.attachedMagnet.x + Math.cos(this.rotation) * this.length;
+          this.y = this.attachedMagnet.y + Math.sin(this.rotation) * this.length;
+        } else {
+          this.vy += gravity;
+          this.x += this.vx;
+          this.y += this.vy;
+        }
+      }
+
+      draw() {
+        if (!this.released) {
+          ctx.beginPath();
+          ctx.moveTo(this.attachedMagnet.x, this.attachedMagnet.y);
+          ctx.lineTo(this.x, this.y);
+          ctx.strokeStyle = "#888";
+          ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 12, 0, Math.PI * 2);
+        ctx.fillStyle = "#33ccff";
+        ctx.fill();
+      }
+
+      release() {
+        if (!this.released) {
+          this.released = true;
+          this.vx = Math.cos(this.rotation) * 10;
+          this.vy = Math.sin(this.rotation) * 10;
+        }
+      }
+
+      checkHit(magnet) {
+        const dx = this.x - magnet.x;
+        const dy = this.y - magnet.y;
+        return Math.sqrt(dx * dx + dy * dy) < magnet.radius + 12;
+      }
+
+      offScreen() {
+        return this.y > height + 100 || this.x < -100 || this.x > width + 100;
+      }
+    }
+
+    function getReachableMagnet(fromMagnet) {
+      const minDistance = 120;
+      const maxDistance = 280;
+      let x, y, attempts = 0;
+
+      do {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * (maxDistance - minDistance) + minDistance;
+        x = fromMagnet.x + Math.cos(angle) * distance;
+        y = fromMagnet.y + Math.sin(angle) * distance;
+        attempts++;
+      } while ((x < 30 || x > width - 30 || y < 30 || y > height - 30) && attempts < 10);
+
+      return new Magnet(x, y);
+    }
+
+    let currentMagnet;
+    let nextMagnet;
+    let ball;
+
+    function updateScore() {
+      score++;
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("highScore", highScore);
+      }
+      scoreDisplay.textContent = `Score: ${score} (High: ${highScore})`;
+    }
+
+    function showGameOver() {
+      gameOverDisplay.style.display = "block";
+      setTimeout(() => {
+        gameOverDisplay.style.display = "none";
+        resetGame();
+      }, 1500);
+    }
+
+    function resetGame() {
+      score = 0;
+      currentSpeed = 0.02;
+      scoreDisplay.textContent = `Score: 0 (High: ${highScore})`;
+      currentMagnet = new Magnet(width / 2, height / 2);
+      nextMagnet = getReachableMagnet(currentMagnet);
+      ball = new Ball(currentMagnet);
+    }
+
+   function gameLoop() {
+  if (!paused) {
+    ctx.clearRect(0, 0, width, height);
+    currentMagnet.draw();
+    nextMagnet.draw();
+    ball.update();
+    ball.draw();
+
+    if (ball.released && ball.checkHit(nextMagnet)) {
+      try {
+        hitSound.currentTime = 0;
+        hitSound.play();
+      } catch (e) {
+        console.warn("Sound error:", e);
+      }
+
+      updateScore();
+
+      if (currentSpeed < maxSpeed) {
+        currentSpeed += 0.005;
+        if (currentSpeed > maxSpeed) currentSpeed = maxSpeed;
+      }
+
+      currentMagnet = nextMagnet;
+      nextMagnet = getReachableMagnet(currentMagnet);
+      ball = new Ball(currentMagnet);
+    }
+
+    if (ball.offScreen()) {
+      showGameOver();
+      // ❌ DO NOT RETURN HERE
+      // return;
+    }
+  }
+
+  requestAnimationFrame(gameLoop);  // Always keep the loop running
+}
+    canvas.addEventListener("click", () => {
+      if (!ball.released) ball.release();
+    });
+
+    canvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      if (!ball.released) ball.release();
+    }, { passive: false });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        paused = !paused;
+      }
+    });
+
+    // Initialize and start
+    resetGame();
+    gameLoop();
+  </script>
+</body>
+</html>

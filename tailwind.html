@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Endless Runner</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #222;
+      font-family: monospace;
+      color: #fff;
+      user-select: none;
+    }
+    canvas {
+      display: block;
+      background: #111;
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 16px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="ui">
+    <div>Distance: <span id="distance">0</span> m</div>
+    <div>Best: <span id="best">0</span> m</div>
+  </div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resize);
+resize();
+
+const GROUND_HEIGHT = 50;
+const PLAYER_SIZE = 30;
+const GRAVITY = 0.6;
+const JUMP_VELOCITY = -12;
+const OBSTACLE_WIDTH = 30;
+const bgSpeedFactor = 0.5;
+const SPEED_LIMIT = 12;
+
+let bgX = 0;
+let player = {
+  x: 100,
+  y: 0,
+  vy: 0,
+  onGround: false,
+  shield: false,
+  jumpBoost: false,
+  color: "#0f0"
+};
+
+let obstacles = [];
+let powerUps = [];
+let obstacleTimer = 0;
+let powerUpTimer = 0;
+let speed = 6;
+let distance = 0;
+let best = parseInt(localStorage.getItem("bestDistance")) || 0;
+let gameOver = false;
+let slowDownTimer = 0;
+
+document.getElementById("best").textContent = best;
+
+function resetGame() {
+  player.y = canvas.height - GROUND_HEIGHT - PLAYER_SIZE;
+  player.vy = 0;
+  player.onGround = true;
+  player.shield = false;
+  player.jumpBoost = false;
+  player.color = "#0f0";
+  obstacles = [];
+  powerUps = [];
+  distance = 0;
+  speed = 6;
+  obstacleTimer = 0;
+  powerUpTimer = 0;
+  slowDownTimer = 0;
+  gameOver = false;
+  bgX = 0;
+}
+
+function jump() {
+  if (player.onGround && !gameOver) {
+    player.vy = player.jumpBoost ? JUMP_VELOCITY * 1.5 : JUMP_VELOCITY;
+    player.onGround = false;
+  }
+  if (gameOver) resetGame();
+}
+
+window.addEventListener("keydown", e => {
+  if (e.code === "Space" || e.code === "ArrowUp") jump();
+});
+window.addEventListener("mousedown", jump);
+window.addEventListener("touchstart", e => {
+  e.preventDefault();
+  jump();
+}, { passive: false });
+
+function update(delta) {
+  if (gameOver) return;
+
+  player.vy += GRAVITY;
+  player.y += player.vy;
+
+  if (player.y >= canvas.height - GROUND_HEIGHT - PLAYER_SIZE) {
+    player.y = canvas.height - GROUND_HEIGHT - PLAYER_SIZE;
+    player.vy = 0;
+    player.onGround = true;
+  }
+
+  distance += speed * (delta / 1000);
+  document.getElementById("distance").textContent = Math.floor(distance);
+
+  speed += 0.0001 * (delta / 16);
+  speed = Math.min(speed, SPEED_LIMIT);
+
+  bgX -= speed * bgSpeedFactor;
+  if (bgX <= -canvas.width) bgX = 0;
+
+  obstacleTimer -= delta;
+  if (obstacleTimer <= 0) {
+    const isAir = Math.random() < 0.4;
+    const height = 30 + Math.random() * 30;
+    const y = isAir
+      ? canvas.height - GROUND_HEIGHT - PLAYER_SIZE - height - Math.random() * 50
+      : canvas.height - GROUND_HEIGHT - height;
+
+    obstacles.push({ x: canvas.width, y, width: OBSTACLE_WIDTH, height });
+    obstacleTimer = 900 + Math.random() * 1000;
+  }
+
+  obstacles.forEach(o => o.x -= speed);
+  obstacles = obstacles.filter(o => o.x + o.width > 0);
+
+  for (let ob of obstacles) {
+    if (
+      player.x < ob.x + ob.width &&
+      player.x + PLAYER_SIZE > ob.x &&
+      player.y < ob.y + ob.height &&
+      player.y + PLAYER_SIZE > ob.y
+    ) {
+      if (player.shield) {
+        player.shield = false;
+        player.color = "#0f0";
+        obstacles = obstacles.filter(o => o !== ob);
+        break;
+      } else {
+        gameOver = true;
+        if (Math.floor(distance) > best) {
+          best = Math.floor(distance);
+          localStorage.setItem("bestDistance", best);
+          document.getElementById("best").textContent = best;
+        }
+      }
+    }
+  }
+
+  powerUpTimer -= delta;
+  if (powerUpTimer <= 0) {
+    const types = ["shield", "slow", "jump"];
+    let type = types[Math.floor(Math.random() * types.length)];
+    let baseY = Math.random() < 0.5
+      ? canvas.height - GROUND_HEIGHT - 40
+      : canvas.height - GROUND_HEIGHT - 80 - Math.random() * 50;
+    powerUps.push({
+      type,
+      x: canvas.width - 100,
+      y: baseY,
+      size: 20,
+      bob: 0
+    });
+    powerUpTimer = 4000 + Math.random() * 3000;
+  }
+
+  powerUps.forEach(p => {
+    p.x -= speed * 0.75;
+    p.bob += delta / 200;
+    p.y += Math.sin(p.bob) * 0.5;
+  });
+  powerUps = powerUps.filter(p => p.x + p.size > 0);
+
+  for (let p of powerUps) {
+    if (
+      player.x < p.x + p.size &&
+      player.x + PLAYER_SIZE > p.x &&
+      player.y < p.y + p.size &&
+      player.y + PLAYER_SIZE > p.y
+    ) {
+      if (p.type === "shield") {
+        player.shield = true;
+        player.color = "#0ff";
+      } else if (p.type === "slow") {
+        speed = Math.max(3, speed * 0.5);
+        slowDownTimer = 4000;
+        player.color = "#ff0";
+      } else if (p.type === "jump") {
+        player.jumpBoost = true;
+        player.color = "#f0f";
+        setTimeout(() => {
+          player.jumpBoost = false;
+          player.color = "#0f0";
+        }, 5000);
+      }
+      powerUps = powerUps.filter(x => x !== p);
+    }
+  }
+
+  if (slowDownTimer > 0) {
+    slowDownTimer -= delta;
+    if (slowDownTimer <= 0) {
+      speed *= 2;
+      player.color = "#0f0";
+    }
+  }
+}
+
+function drawBackground() {
+  const groundY = canvas.height - GROUND_HEIGHT;
+  ctx.fillStyle = "#111";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#444";
+  ctx.fillRect(bgX, 0, canvas.width, groundY);
+  ctx.fillRect(bgX + canvas.width, 0, canvas.width, groundY);
+
+  ctx.fillStyle = "#333";
+  for (let i = Math.floor(bgX / 40) * 40; i < canvas.width; i += 40) {
+    ctx.fillRect(i + (bgX % 40), groundY, 40, GROUND_HEIGHT);
+    ctx.fillStyle = "#444";
+    ctx.fillRect(i + (bgX % 40), groundY, 20, GROUND_HEIGHT / 4);
+    ctx.fillStyle = "#333";
+  }
+}
+
+function draw() {
+  drawBackground();
+
+  ctx.fillStyle = gameOver ? "red" : player.color;
+  ctx.fillRect(player.x, player.y, PLAYER_SIZE, PLAYER_SIZE);
+
+  if (player.shield) {
+    ctx.strokeStyle = "#0ff";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(player.x - 2, player.y - 2, PLAYER_SIZE + 4, PLAYER_SIZE + 4);
+  }
+
+  ctx.fillStyle = "#f00";
+  obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.width, o.height));
+
+  powerUps.forEach(p => {
+    if (p.type === "shield") ctx.fillStyle = "#0ff";
+    else if (p.type === "slow") ctx.fillStyle = "#ff0";
+    else if (p.type === "jump") ctx.fillStyle = "#f0f";
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+  });
+
+  if (gameOver) {
+    ctx.fillStyle = "#fff";
+    ctx.font = "24px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("Game Over! Tap/click/space to restart", canvas.width / 2, canvas.height / 2);
+  }
+}
+
+let lastTime = 0;
+function loop(time = 0) {
+  const delta = time - lastTime;
+  lastTime = time;
+  update(delta);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+resetGame();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lava Dash - With Coins & Speed</title>
+<style>
+  body, html {
+    margin: 0; padding: 0; overflow: hidden;
+    background: #111;
+    display: flex; justify-content: center; align-items: center;
+    height: 100vh;
+    user-select: none;
+  }
+  canvas {
+    background: linear-gradient(to top, #440000, #220000);
+    display: block;
+    border: 4px solid #ff3300;
+    image-rendering: pixelated;
+  }
+  #info {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+    color: #eee; font-family: monospace; font-size: 14px;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="game" width="320" height="480"></canvas>
+<div id="info">Tap/Click or press SPACE to jump. Collect coins. Survive!</div>
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  // Constants
+  const WALL_X_LEFT = 40;
+  const WALL_X_RIGHT = W - 40;
+  const PLAYER_SIZE = 14;
+  const LAVA_HEIGHT = 20;
+  const SPIKE_SIZE = 12;
+  const COIN_SIZE = 10;
+  const PLAYER_Y = H * 0.7;
+
+  // Speed & gameplay
+  const SCROLL_SPEED_MIN = 1.2;
+  const SCROLL_SPEED_MAX = 3.5;
+  const SPEED_INCREASE_RATE = 0.0008; // per coin collected or score progress
+
+  let scrollSpeed = SCROLL_SPEED_MIN;
+  let lastTime = 0;
+  let score = 0;
+  let coinsCollected = 0;
+  let gameOver = false;
+
+  // Player
+  const player = {
+    side: 'left',
+    x: WALL_X_LEFT,
+    y: PLAYER_Y,
+  };
+
+  // Offset controls scrolling of everything
+  let offsetY = 0;
+
+  // Spikes
+  const spikeSpacing = 120;
+  const spikeCount = 15;
+  let spikes = [];
+
+  // Coins (spawn between safe zones)
+  let coins = [];
+
+  // Initialize spikes at vertical intervals, random side
+  function initSpikes() {
+    spikes = [];
+    for (let i = 0; i < spikeCount; i++) {
+      let y = -i * spikeSpacing;
+      let side = (Math.random() > 0.5) ? 'left' : 'right';
+      spikes.push({ y, side });
+    }
+  }
+
+  // Check if position is safe (no spike nearby)
+  // We'll check if a spike is within spikeSpacing/2 vertically and on the same side
+  function isSafePosition(side, y) {
+    for (const sp of spikes) {
+      const spY = sp.y + offsetY;
+      if (sp.side === side && Math.abs(spY - y) < spikeSpacing / 2) {
+        return false;
+      }
+    }
+    // Also make sure y is well above lava (say 40 pixels)
+    if (y + offsetY > H - LAVA_HEIGHT - 40) return false;
+    return true;
+  }
+
+  // Spawn coins randomly in safe places
+  function initCoins() {
+    coins = [];
+    // We'll spawn as many coins as spikes for a good balance
+    for (let i = 0; i < spikeCount; i++) {
+      // y near spike position but safe offset
+      let baseY = -i * spikeSpacing - spikeSpacing / 3;
+      // Try random sides until safe found or max attempts
+      let attempts = 0;
+      while (attempts < 10) {
+        const side = (Math.random() > 0.5) ? 'left' : 'right';
+        const y = baseY + (Math.random() * spikeSpacing / 3); // small vertical variation
+        if (isSafePosition(side, y)) {
+          coins.push({ y, side, collected: false });
+          break;
+        }
+        attempts++;
+      }
+    }
+  }
+
+  initSpikes();
+  initCoins();
+
+  function lavaTop() {
+    return H - LAVA_HEIGHT + offsetY;
+  }
+
+  function jump() {
+    if (gameOver) return;
+    player.side = (player.side === 'left') ? 'right' : 'left';
+    player.x = (player.side === 'left') ? WALL_X_LEFT : WALL_X_RIGHT;
+  }
+
+  window.addEventListener('keydown', e => {
+    if (e.code === 'Space') {
+      if (gameOver) restart();
+      else jump();
+    }
+  });
+
+  window.addEventListener('mousedown', () => {
+    if (gameOver) restart();
+    else jump();
+  });
+
+  window.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (gameOver) restart();
+    else jump();
+  }, { passive: false });
+
+  function restart() {
+    offsetY = 0;
+    score = 0;
+    coinsCollected = 0;
+    scrollSpeed = SCROLL_SPEED_MIN;
+    gameOver = false;
+    player.side = 'left';
+    player.x = WALL_X_LEFT;
+    initSpikes();
+    initCoins();
+  }
+
+  // Check collision with lava, spikes, coins
+  function checkCollision() {
+    if (lavaTop() <= player.y + PLAYER_SIZE) {
+      gameOver = true;
+      return;
+    }
+    for (const sp of spikes) {
+      const spScreenY = sp.y + offsetY;
+      if (spScreenY > H || spScreenY < 0) continue;
+      if (sp.side === player.side) {
+        if (
+          player.y + PLAYER_SIZE > spScreenY - SPIKE_SIZE &&
+          player.y < spScreenY + SPIKE_SIZE / 2
+        ) {
+          gameOver = true;
+          return;
+        }
+      }
+    }
+
+    for (const coin of coins) {
+      if (coin.collected) continue;
+      const coinY = coin.y + offsetY;
+      if (coin.side === player.side) {
+        // Simple circular collision check
+        const dx = player.x - (coin.side === 'left' ? WALL_X_LEFT : WALL_X_RIGHT);
+        const dy = player.y - coinY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < PLAYER_SIZE) {
+          coin.collected = true;
+          coinsCollected++;
+          score += 5; // coins add extra score
+
+          // Speed increase capped
+          scrollSpeed = Math.min(SCROLL_SPEED_MAX, scrollSpeed + SPEED_INCREASE_RATE * 100);
+        }
+      }
+    }
+  }
+
+  function update(delta) {
+    if (gameOver) return;
+
+    offsetY += scrollSpeed * (delta / 16);
+    score = Math.floor(offsetY / 10) + coinsCollected * 5;
+
+    // Slowly increase speed over time by score (not just coins)
+    scrollSpeed = Math.min(SCROLL_SPEED_MAX, SCROLL_SPEED_MIN + SPEED_INCREASE_RATE * score);
+
+    // Recycle spikes and coins that passed bottom
+    for (let sp of spikes) {
+      if (sp.y + offsetY > H + 40) {
+        sp.y -= spikeCount * spikeSpacing;
+        sp.side = (Math.random() > 0.5) ? 'left' : 'right';
+      }
+    }
+
+    for (let coin of coins) {
+      if (coin.y + offsetY > H + 40) {
+        coin.y -= spikeCount * spikeSpacing;
+        coin.collected = false;
+        // Randomize side but keep safe position - quick check
+        for (let i = 0; i < 10; i++) {
+          const side = (Math.random() > 0.5) ? 'left' : 'right';
+          if (isSafePosition(side, coin.y)) {
+            coin.side = side;
+            break;
+          }
+        }
+      }
+    }
+
+    checkCollision();
+  }
+
+  // Draw
+  function drawWall(x) {
+    ctx.fillStyle = '#ff3300';
+    ctx.fillRect(x - 6, 0, 12, H);
+  }
+
+  function drawPlayer() {
+    ctx.fillStyle = '#ffee00';
+    ctx.fillRect(player.x - PLAYER_SIZE / 2, player.y - PLAYER_SIZE, PLAYER_SIZE, PLAYER_SIZE);
+  }
+
+  function drawLava() {
+    const y = lavaTop();
+    const gradient = ctx.createLinearGradient(0, y, 0, H);
+    gradient.addColorStop(0, '#ff3300');
+    gradient.addColorStop(1, '#990000');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, y, W, H - y);
+  }
+
+  function drawSpikes() {
+    ctx.fillStyle = '#aa0000';
+    spikes.forEach(sp => {
+      const y = sp.y + offsetY;
+      if (y < -SPIKE_SIZE || y > H + SPIKE_SIZE) return;
+      ctx.beginPath();
+      if (sp.side === 'left') {
+        ctx.moveTo(WALL_X_LEFT + SPIKE_SIZE / 2, y);
+        ctx.lineTo(WALL_X_LEFT - SPIKE_SIZE / 2, y + SPIKE_SIZE);
+        ctx.lineTo(WALL_X_LEFT - SPIKE_SIZE / 2, y - SPIKE_SIZE);
+      } else {
+        ctx.moveTo(WALL_X_RIGHT - SPIKE_SIZE / 2, y);
+        ctx.lineTo(WALL_X_RIGHT + SPIKE_SIZE / 2, y + SPIKE_SIZE);
+        ctx.lineTo(WALL_X_RIGHT + SPIKE_SIZE / 2, y - SPIKE_SIZE);
+      }
+      ctx.closePath();
+      ctx.fill();
+    });
+  }
+
+  function drawCoins() {
+    ctx.fillStyle = '#ffd700';
+    coins.forEach(coin => {
+      if (coin.collected) return;
+      const y = coin.y + offsetY;
+      if (y < -COIN_SIZE || y > H + COIN_SIZE) return;
+      const x = (coin.side === 'left') ? WALL_X_LEFT : WALL_X_RIGHT;
+
+      // Draw coin as simple circle with shine
+      ctx.beginPath();
+      ctx.arc(x, y, COIN_SIZE / 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Shine highlight
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.arc(x - 2, y - 2, COIN_SIZE / 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffd700';
+    });
+  }
+
+  function drawScore() {
+    ctx.fillStyle = '#ffee00';
+    ctx.font = '20px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('Score: ' + score, 10, 30);
+    ctx.fillText('Coins: ' + coinsCollected, 10, 60);
+  }
+
+  function drawGameOver() {
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 36px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', W / 2, H / 2 - 20);
+    ctx.font = '20px monospace';
+    ctx.fillText('Tap or SPACE to restart', W / 2, H / 2 + 20);
+  }
+
+  function gameLoop(time = 0) {
+    const delta = time - lastTime;
+    lastTime = time;
+
+    ctx.clearRect(0, 0, W, H);
+
+    drawWall(WALL_X_LEFT);
+    drawWall(WALL_X_RIGHT);
+    drawSpikes();
+    drawCoins();
+    drawPlayer();
+    drawLava();
+    drawScore();
+
+    update(delta);
+
+    if (gameOver) drawGameOver();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  restart();
+  requestAnimationFrame(gameLoop);
+
+})();
+</script>
+</body>
+</html>
