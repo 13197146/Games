@@ -1,54 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Game Menu</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-    nav {
-      background: #333;
-      padding: 10px;
-      display: flex;
-      gap: 10px;
-    }
-    nav button {
-      background: #555;
+      font-family: Arial, sans-serif;
+      background: #111;
       color: white;
-      border: none;
-      padding: 10px 15px;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      padding: 20px;
+    }
+
+    .card {
+      background: #1e1e1e;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
       cursor: pointer;
+      transition: transform 0.2s;
     }
-    nav button:hover {
-      background: #777;
+
+    .card:hover {
+      transform: scale(1.03);
     }
-    iframe {
-      flex: 1;
-      border: none;
+
+    .thumb {
       width: 100%;
+      height: 140px;
+      object-fit: cover;
+    }
+
+    .info {
+      padding: 10px;
+    }
+
+    .title {
+      font-size: 16px;
+      margin: 5px 0;
+    }
+
+    .rating {
+      background: #2ecc71;
+      color: white;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      display: inline-block;
+    }
+
+    #gameFrame {
+      width: 100%;
+      height: 90vh;
+      border: none;
+      display: none;
     }
   </style>
 </head>
 <body>
 
-  <nav>
-    <button onclick="loadGame('magnetball.html')">Magnet Ball</button>
-    <button onclick="loadGame('tailwind.html')">Tail Wind</button>
-    <button onclick="loadGame('lavadash.html')">Lava Dash</button>
-    <button onclick="loadGame('snakesprint.html')">Snake Sprint</button>
-    <button onclick="loadGame('lanehopper.html')">Lane hopper</button>
-  </nav>
+  <h1>🎮 Game Menu</h1>
 
-  <iframe id="gameFrame" src=""></iframe>
+  <div class="grid" id="menu">
+    <!-- Game cards with real names -->
+    <div class="card" onclick="loadGame('magnetball.html')">
+      <img src="magnetball.jpg" alt="Magnet Ball" class="thumb" />
+      <div class="info">
+        <div class="title">Magnet Ball</div>
+        <div class="rating">75</div>
+      </div>
+    </div>
+
+    <div class="card" onclick="loadGame('tailwind.html')">
+      <img src="tailwind.jpg" alt="Tail Wind" class="thumb" />
+      <div class="info">
+        <div class="title">Tail Wind</div>
+        <div class="rating">82</div>
+      </div>
+    </div>
+
+    <div class="card" onclick="loadGame('lavadash.html')">
+      <img src="lavadash.jpg" alt="Lava Dash" class="thumb" />
+      <div class="info">
+        <div class="title">Lava Dash</div>
+        <div class="rating">69</div>
+      </div>
+    </div>
+
+    <div class="card" onclick="loadGame('snakesprint.html')">
+      <img src="snakesprint.jpg" alt="Snake Sprint" class="thumb" />
+      <div class="info">
+        <div class="title">Snake Sprint</div>
+        <div class="rating">88</div>
+      </div>
+    </div>
+
+    <div class="card" onclick="loadGame('lanehopper.html')">
+      <img src="lanehopper.jpg" alt="Lane Hopper" class="thumb" />
+      <div class="info">
+        <div class="title">Lane Hopper</div>
+        <div class="rating">74</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game loader -->
+  <iframe id="gameFrame"></iframe>
 
   <script>
-    function loadGame(file) {
-      document.getElementById('gameFrame').src = file;
+    function loadGame(gameFile) {
+      document.getElementById("menu").style.display = "none";
+      const frame = document.getElementById("gameFrame");
+      frame.src = gameFile;
+      frame.style.display = "block";
     }
   </script>
 
