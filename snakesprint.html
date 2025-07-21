@@ -33,14 +33,28 @@
     padding-left: 20px;
     margin: 0;
   }
+  button {
+    margin-top: 10px;
+    padding: 6px 12px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  #gameMessage {
+    color: #f88;
+    font-size: 18px;
+    margin-top: 10px;
+    text-align: center;
+    min-height: 24px;
+  }
 </style>
 </head>
 <body>
 
 <div id="info">
-  <div>Tap/Click or press Space/Arrows to turn clockwise<br>Score: <span id="score">0</span></div>
+  <div>Use Arrow Keys or swipe on mobile to change direction.<br>Press Space or Play/Pause button to start/pause.<br>Score: <span id="score">0</span></div>
 </div>
 <canvas id="game" width="400" height="400"></canvas>
+<div id="gameMessage"></div>
 
 <div id="scoreboard">
   <h2>High Scores</h2>
@@ -53,7 +67,9 @@
   const ctx = canvas.getContext('2d');
   const scoreEl = document.getElementById('score');
   const highScoresList = document.getElementById('highScoresList');
-  
+  const infoDiv = document.getElementById('info');
+  const gameMessage = document.getElementById('gameMessage');
+
   const CELL_SIZE = 20;
   const COLS = canvas.width / CELL_SIZE;
   const ROWS = canvas.height / CELL_SIZE;
@@ -65,24 +81,28 @@
     left: { x: -1, y: 0 },
     up: { x: 0, y: -1 },
   };
-  const order = ['right', 'down', 'left', 'up']; // clockwise order for turning
 
   // Game variables
-  let snake, directionIndex, direction, food, obstacles, score, foodTimer;
+  let snake, direction, food, obstacles, score, foodTimer;
   const FOOD_LIFETIME = 12000; // 12 seconds before food disappears
   const OBSTACLE_COUNT = 7; // fewer obstacles for easy mode
   const FPS = 6; // slower speed
+  let gameInterval = null;
+  let isPaused = true; // Start paused until Play is clicked
 
   // High score tracking (session only)
   let highScores = [];
 
+  // Create Play/Pause button
+  const playPauseBtn = document.createElement('button');
+  playPauseBtn.textContent = 'Play';
+  infoDiv.appendChild(playPauseBtn);
+
   function reset() {
-    // Start snake smaller for easier start
     snake = [
-      { x: Math.floor(COLS/2) - 1, y: Math.floor(ROWS/2) }
+      { x: Math.floor(COLS / 2) - 1, y: Math.floor(ROWS / 2) },
     ];
-    directionIndex = 0; // start moving right
-    direction = DIRS[order[directionIndex]];
+    direction = DIRS.right;
     score = 0;
     scoreEl.textContent = score;
     generateObstacles();
@@ -91,11 +111,13 @@
 
   function generateObstacles() {
     obstacles = [];
-    // Place OBSTACLE_COUNT random obstacles avoiding snake start pos
     while (obstacles.length < OBSTACLE_COUNT) {
-      const pos = {x: randInt(0, COLS-1), y: randInt(0, ROWS-1)};
-      if (snake.some(s => s.x === pos.x && s.y === pos.y)) continue;
-      if (obstacles.some(o => o.x === pos.x && o.y === pos.y)) continue;
+      const pos = { x: randInt(0, COLS - 1), y: randInt(0, ROWS - 1) };
+      if (
+        snake.some((s) => s.x === pos.x && s.y === pos.y) ||
+        obstacles.some((o) => o.x === pos.x && o.y === pos.y)
+      )
+        continue;
       obstacles.push(pos);
     }
   }
@@ -103,12 +125,12 @@
   function placeFood() {
     let tries = 0;
     do {
-      food = { x: randInt(0, COLS-1), y: randInt(0, ROWS-1) };
+      food = { x: randInt(0, COLS - 1), y: randInt(0, ROWS - 1) };
       tries++;
       if (tries > 100) break; // fallback
     } while (
-      snake.some(s => s.x === food.x && s.y === food.y) ||
-      obstacles.some(o => o.x === food.x && o.y === food.y)
+      snake.some((s) => s.x === food.x && s.y === food.y) ||
+      obstacles.some((o) => o.x === food.x && o.y === food.y)
     );
     foodTimer = Date.now();
   }
@@ -133,7 +155,7 @@
     // Draw food (blink if almost expired)
     const timeLeft = FOOD_LIFETIME - (Date.now() - foodTimer);
     if (timeLeft > 0) {
-      if (timeLeft < 1500 && Math.floor(Date.now()/200) % 2 === 0) {
+      if (timeLeft < 1500 && Math.floor(Date.now() / 200) % 2 === 0) {
         // blink effect near expiration (skip drawing food)
       } else {
         drawCell(food.x, food.y, '#FF5555');
@@ -152,10 +174,12 @@
 
     // Check collisions
     if (
-      newHead.x < 0 || newHead.x >= COLS ||
-      newHead.y < 0 || newHead.y >= ROWS ||
-      snake.some(s => s.x === newHead.x && s.y === newHead.y) ||
-      obstacles.some(o => o.x === newHead.x && o.y === newHead.y)
+      newHead.x < 0 ||
+      newHead.x >= COLS ||
+      newHead.y < 0 ||
+      newHead.y >= ROWS ||
+      snake.some((s) => s.x === newHead.x && s.y === newHead.y) ||
+      obstacles.some((o) => o.x === newHead.x && o.y === newHead.y)
     ) {
       gameOver();
       return;
@@ -164,7 +188,12 @@
     snake.push(newHead);
 
     // Check if ate food and food still valid
-    if (food && newHead.x === food.x && newHead.y === food.y && (Date.now() - foodTimer) <= FOOD_LIFETIME) {
+    if (
+      food &&
+      newHead.x === food.x &&
+      newHead.y === food.y &&
+      Date.now() - foodTimer <= FOOD_LIFETIME
+    ) {
       score++;
       scoreEl.textContent = score;
       placeFood();
@@ -173,31 +202,36 @@
     }
 
     // If food expired, place new food
-    if (food && (Date.now() - foodTimer) > FOOD_LIFETIME) {
+    if (food && Date.now() - foodTimer > FOOD_LIFETIME) {
       placeFood();
     }
   }
 
-  function turn() {
-    directionIndex = (directionIndex + 1) % order.length;
-    direction = DIRS[order[directionIndex]];
+  // Change direction only if not reversing directly
+  function setDirection(newDir) {
+    if (
+      (direction.x + newDir.x === 0 && direction.y + newDir.y === 0) // Prevent reversing
+    ) return;
+    direction = newDir;
   }
 
   function gameOver() {
-    alert(`Game Over! Your score: ${score}`);
+    pauseGame();
+    gameMessage.textContent = `Game Over! Your score: ${score}`;
     addHighScore(score);
     reset();
+    draw();
   }
 
   function addHighScore(score) {
     highScores.push(score);
-    highScores.sort((a,b) => b - a);
-    if (highScores.length > 5) highScores.length = 5; // keep top 5
+    highScores.sort((a, b) => b - a);
+    if (highScores.length > 5) highScores.length = 5;
     updateHighScoresUI();
   }
 
   function updateHighScoresUI() {
-    highScoresList.innerHTML = highScores.map(s => `<li>${s}</li>`).join('');
+    highScoresList.innerHTML = highScores.map((s) => `<li>${s}</li>`).join('');
   }
 
   function loop() {
@@ -205,24 +239,108 @@
     draw();
   }
 
-  // Input
-  window.addEventListener('keydown', e => {
-    if (e.code === 'Space' || e.code.startsWith('Arrow')) {
-      e.preventDefault();
-      turn();
+  // Keyboard input - direct direction control + space toggle pause
+  window.addEventListener('keydown', (e) => {
+    switch (e.code) {
+      case 'ArrowUp':
+        e.preventDefault();
+        setDirection(DIRS.up);
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        setDirection(DIRS.down);
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        setDirection(DIRS.left);
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        setDirection(DIRS.right);
+        break;
+      case 'Space':
+        e.preventDefault();
+        togglePause();
+        break;
     }
   });
-  window.addEventListener('mousedown', e => {
-    e.preventDefault();
-    turn();
-  });
-  window.addEventListener('touchstart', e => {
-    e.preventDefault();
-    turn();
-  }, {passive: false});
 
+  // Swipe detection for mobile to control direction
+  let touchStartX = null;
+  let touchStartY = null;
+  const MIN_SWIPE_DISTANCE = 30; // minimum px for a swipe
+
+  window.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!touchStartX || !touchStartY) return;
+
+    const touchEndX = e.touches[0].clientX;
+    const touchEndY = e.touches[0].clientY;
+
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > MIN_SWIPE_DISTANCE) {
+      // Horizontal swipe
+      if (dx > 0) {
+        setDirection(DIRS.right);
+      } else {
+        setDirection(DIRS.left);
+      }
+      touchStartX = null;
+      touchStartY = null;
+    } else if (Math.abs(dy) > MIN_SWIPE_DISTANCE) {
+      // Vertical swipe
+      if (dy > 0) {
+        setDirection(DIRS.down);
+      } else {
+        setDirection(DIRS.up);
+      }
+      touchStartX = null;
+      touchStartY = null;
+    }
+  }, { passive: true });
+
+  // Play/Pause button event
+  playPauseBtn.addEventListener('click', () => {
+    togglePause();
+  });
+
+  function playGame() {
+    if (!gameInterval) {
+      gameMessage.textContent = '';  // clear game over message on play
+      gameInterval = setInterval(loop, 1000 / FPS);
+      isPaused = false;
+      playPauseBtn.textContent = 'Pause';
+    }
+  }
+
+  function pauseGame() {
+    if (gameInterval) {
+      clearInterval(gameInterval);
+      gameInterval = null;
+      isPaused = true;
+      playPauseBtn.textContent = 'Play';
+    }
+  }
+
+  function togglePause() {
+    if (isPaused) {
+      playGame();
+    } else {
+      pauseGame();
+    }
+  }
+
+  // Initialize game
   reset();
-  setInterval(loop, 1000 / FPS);
+  draw();
 })();
 </script>
 
