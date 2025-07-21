@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>Lane Hopper</title>
+<title>Lane Hopper - Swipe + Keyboard</title>
 <style>
   html, body {
     margin: 0;
@@ -22,7 +22,7 @@
   #game {
     position: relative;
     width: 100vw;
-    max-width: 220px;
+    max-width: 320px;
     height: 100vh;
     max-height: 700px;
     background: #222;
@@ -30,6 +30,7 @@
     border-radius: 12px;
     margin: auto;
     overflow: hidden;
+    touch-action: pan-y;
   }
 
   .player-car, .obstacle {
@@ -77,14 +78,36 @@
     opacity: 0.5;
     z-index: 2;
   }
+
+  #playPauseBtn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    background: #444;
+    border: none;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    font-size: 14px;
+    transition: background 0.3s;
+  }
+
+  #playPauseBtn:hover {
+    background: #666;
+  }
 </style>
 </head>
 <body>
-<div id="game">
+<div id="game" tabindex="0" aria-label="Lane Hopper game">
   <div id="scoreboard">Score: 0</div>
   <div id="bestscore">Best: 0</div>
-  <div id="taphint">Tap / Click to switch lanes</div>
-  <div id="player" class="player-car"></div>
+  <div id="taphint">Swipe left/right or use ← → keys to switch lanes</div>
+  <div id="player" class="player-car" aria-label="Player car"></div>
+  <button id="playPauseBtn" aria-label="Pause game" title="Pause game">Pause</button>
 </div>
 
 <script>
@@ -94,21 +117,31 @@
   const scoreboard = document.getElementById('scoreboard');
   const bestscoreElem = document.getElementById('bestscore');
   const taphint = document.getElementById('taphint');
+  const playPauseBtn = document.getElementById('playPauseBtn');
 
-  const laneWidth = 90;
+  const laneWidth = 100;
   const carWidth = 30;
   const laneOffset = (laneWidth - carWidth) / 2;
-  const lanes = [laneOffset, laneWidth + laneOffset]; // two lanes centered
 
-  let playerLane = 0;
+  // 3 lanes: left(0), center(1), right(2)
+  const lanes = [
+    laneOffset,
+    laneWidth + laneOffset,
+    2 * laneWidth + laneOffset
+  ];
+
+  let playerLane = 1; // start in center lane
+
   let obstacles = [];
   let score = 0;
   let bestScore = 0;
-  let speed = 1.6; // ✅ slightly faster base speed
+  let speed = 1.6;
   let spawnInterval = 1800;
   let lastSpawn = 0;
   let lastFrameTime = 0;
   let gameOver = false;
+  let paused = false;
+
   const maxSpeed = 6;
 
   const carColors = ['#e74c3c','#3498db','#f1c40f','#2ecc71','#9b59b6','#e67e22','#1abc9c','#e84393'];
@@ -134,9 +167,10 @@
       obstacle.style.boxShadow = '0 0 8px #888 inset';
     }
 
-    obstacle.lane = Math.round(Math.random());
+    obstacle.lane = Math.floor(Math.random() * 3);
     obstacle.style.left = lanes[obstacle.lane] + 'px';
     obstacle.style.top = '-70px';
+    obstacle.pos = -70;
 
     game.appendChild(obstacle);
     obstacles.push(obstacle);
@@ -145,11 +179,10 @@
   function updateObstacles(delta) {
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const obs = obstacles[i];
-      let topPx = parseFloat(obs.style.top);
-      topPx += speed * delta;
-      obs.style.top = topPx + 'px';
+      obs.pos += speed * delta;
+      obs.style.top = obs.pos + 'px';
 
-      if (topPx > game.clientHeight + 50) {
+      if (obs.pos > game.clientHeight + 50) {
         obs.remove();
         obstacles.splice(i, 1);
         score++;
@@ -167,7 +200,7 @@
         }
 
         if (score % 5 === 0 && speed < maxSpeed) {
-          speed = Math.min(maxSpeed, speed + 0.11); // ✅ slightly faster acceleration
+          speed = Math.min(maxSpeed, speed + 0.11);
           spawnInterval = Math.max(700, spawnInterval - 70);
         }
       }
@@ -195,19 +228,22 @@
     spawnInterval = 1800;
     currentSkinIndex = 0;
     setPlayerSkin(currentSkinIndex);
-    playerLane = 0;
+    playerLane = 1;
     player.style.left = lanes[playerLane] + 'px';
     scoreboard.textContent = 'Score: 0';
-    taphint.textContent = 'Tap / Click to switch lanes';
-    taphint.style.opacity = 1;
+    taphint.textContent = 'Swipe left/right or use ← → keys to switch lanes';
+    taphint.style.opacity = 0.5;
     gameOver = false;
+    paused = false;
+    playPauseBtn.textContent = 'Pause';
+    playPauseBtn.setAttribute('aria-label', 'Pause game');
     lastSpawn = 0;
     lastFrameTime = 0;
     requestAnimationFrame(gameLoop);
   }
 
   function gameLoop(time = 0) {
-    if (gameOver) return;
+    if (gameOver || paused) return;
 
     const delta = (time - lastFrameTime) / 16;
     lastFrameTime = time;
@@ -221,7 +257,7 @@
 
     if (checkCollision()) {
       gameOver = true;
-      taphint.textContent = 'Game Over! Tap to restart';
+      taphint.textContent = 'Game Over! Swipe or press key to restart';
       taphint.style.opacity = 1;
       return;
     }
@@ -229,28 +265,133 @@
     requestAnimationFrame(gameLoop);
   }
 
-  function switchLane() {
+  // Move player lane left, bounded
+  function moveLaneLeft() {
+    if (gameOver || paused) return;
+    if (playerLane > 0) {
+      playerLane--;
+      player.style.left = lanes[playerLane] + 'px';
+      taphint.style.opacity = 0;
+    }
+  }
+
+  // Move player lane right, bounded
+  function moveLaneRight() {
+    if (gameOver || paused) return;
+    if (playerLane < lanes.length -1) {
+      playerLane++;
+      player.style.left = lanes[playerLane] + 'px';
+      taphint.style.opacity = 0;
+    }
+  }
+
+  // Handle keyboard arrows
+  function onKeyDown(e) {
     if (gameOver) {
       resetGame();
       return;
     }
-    playerLane = 1 - playerLane;
-    player.style.left = lanes[playerLane] + 'px';
+    if (paused) return;
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      moveLaneLeft();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      moveLaneRight();
+    }
   }
 
-  // Touch/click events
-  game.addEventListener('click', switchLane);
-  game.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    switchLane();
-  }, { passive: false });
+  // Touch swipe detection variables
+  let touchStartX = null;
+  let touchStartY = null;
+  const swipeThreshold = 30; // minimum px distance to be swipe
 
-  // Init
+  function onTouchStart(e) {
+    if (gameOver) return;
+    if (e.touches && e.touches.length === 1) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
+  }
+
+  function onTouchMove(e) {
+    // prevent vertical scroll when swiping left/right in game
+    if (!touchStartX) return;
+    if (e.touches && e.touches.length === 1) {
+      const dx = e.touches[0].clientX - touchStartX;
+      const dy = e.touches[0].clientY - touchStartY;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        e.preventDefault();
+      }
+    }
+  }
+
+  function onTouchEnd(e) {
+    if (gameOver) {
+      resetGame();
+      return;
+    }
+    if (touchStartX === null) return;
+
+    if (e.changedTouches && e.changedTouches.length === 1) {
+      const touchEndX = e.changedTouches[0].clientX;
+      const dx = touchEndX - touchStartX;
+
+      if (Math.abs(dx) > swipeThreshold) {
+        if (dx > 0) {
+          moveLaneRight();
+        } else {
+          moveLaneLeft();
+        }
+      }
+    }
+    touchStartX = null;
+    touchStartY = null;
+  }
+
+  // Play/pause toggle
+  function togglePause() {
+    if (gameOver) return; // can't pause after game over
+    paused = !paused;
+    if (!paused) {
+      lastFrameTime = performance.now();
+      requestAnimationFrame(gameLoop);
+      playPauseBtn.textContent = 'Pause';
+      playPauseBtn.setAttribute('aria-label', 'Pause game');
+      taphint.style.opacity = 0.5;
+    } else {
+      playPauseBtn.textContent = 'Play';
+      playPauseBtn.setAttribute('aria-label', 'Play game');
+      taphint.style.opacity = 1;
+      taphint.textContent = 'Paused';
+    }
+  }
+
+  playPauseBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // prevent triggering lane move on click
+    togglePause();
+  });
+
+  // Restart game on click/tap if game over
+  game.addEventListener('click', () => {
+    if (gameOver) resetGame();
+  });
+
+  // Keyboard
+  // Keyboard input event
+  document.addEventListener('keydown', onKeyDown);
+
+  // Touch events for mobile
+  game.addEventListener('touchstart', onTouchStart, { passive: false });
+  game.addEventListener('touchmove', onTouchMove, { passive: false });
+  game.addEventListener('touchend', onTouchEnd);
+
+  // Initial setup
   bestScore = parseInt(localStorage.getItem('laneHopperBest')) || 0;
   bestscoreElem.textContent = 'Best: ' + bestScore;
-  setPlayerSkin(currentSkinIndex);
   player.style.left = lanes[playerLane] + 'px';
-
+  setPlayerSkin(currentSkinIndex);
   requestAnimationFrame(gameLoop);
 })();
 </script>
