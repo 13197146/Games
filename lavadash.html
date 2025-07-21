@@ -22,12 +22,47 @@
     position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
     color: #eee; font-family: monospace; font-size: 14px;
     user-select: none;
+    z-index: 10;
+  }
+  #playPauseBtn {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    background: #ff3300;
+    border: none;
+    color: white;
+    padding: 10px 16px;
+    font-family: monospace;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    user-select: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    transition: background 0.3s ease;
+    max-width: 90vw;
+    white-space: nowrap;
+  }
+
+  #playPauseBtn:hover {
+    background: #e62e00;
+  }
+
+  @media (max-width: 480px) {
+    #playPauseBtn {
+      top: 8px;
+      right: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
   }
 </style>
 </head>
 <body>
 <canvas id="game" width="320" height="480"></canvas>
 <div id="info">Tap/Click or press SPACE to jump. Collect coins. Survive!</div>
+<button id="playPauseBtn">Play</button>
+
 <script>
 (() => {
   const canvas = document.getElementById('game');
@@ -54,6 +89,7 @@
   let score = 0;
   let coinsCollected = 0;
   let gameOver = false;
+  let isPlaying = false; // Game starts paused
 
   // Player
   const player = {
@@ -73,7 +109,6 @@
   // Coins (spawn between safe zones)
   let coins = [];
 
-  // Initialize spikes at vertical intervals, random side
   function initSpikes() {
     spikes = [];
     for (let i = 0; i < spikeCount; i++) {
@@ -83,8 +118,6 @@
     }
   }
 
-  // Check if position is safe (no spike nearby)
-  // We'll check if a spike is within spikeSpacing/2 vertically and on the same side
   function isSafePosition(side, y) {
     for (const sp of spikes) {
       const spY = sp.y + offsetY;
@@ -92,23 +125,18 @@
         return false;
       }
     }
-    // Also make sure y is well above lava (say 40 pixels)
     if (y + offsetY > H - LAVA_HEIGHT - 40) return false;
     return true;
   }
 
-  // Spawn coins randomly in safe places
   function initCoins() {
     coins = [];
-    // We'll spawn as many coins as spikes for a good balance
     for (let i = 0; i < spikeCount; i++) {
-      // y near spike position but safe offset
       let baseY = -i * spikeSpacing - spikeSpacing / 3;
-      // Try random sides until safe found or max attempts
       let attempts = 0;
       while (attempts < 10) {
         const side = (Math.random() > 0.5) ? 'left' : 'right';
-        const y = baseY + (Math.random() * spikeSpacing / 3); // small vertical variation
+        const y = baseY + (Math.random() * spikeSpacing / 3);
         if (isSafePosition(side, y)) {
           coins.push({ y, side, collected: false });
           break;
@@ -118,15 +146,12 @@
     }
   }
 
-  initSpikes();
-  initCoins();
-
   function lavaTop() {
     return H - LAVA_HEIGHT + offsetY;
   }
 
   function jump() {
-    if (gameOver) return;
+    if (gameOver || !isPlaying) return;
     player.side = (player.side === 'left') ? 'right' : 'left';
     player.x = (player.side === 'left') ? WALL_X_LEFT : WALL_X_RIGHT;
   }
@@ -149,22 +174,38 @@
     else jump();
   }, { passive: false });
 
+  const playPauseBtn = document.getElementById('playPauseBtn');
+
+  playPauseBtn.addEventListener('click', () => {
+    if (gameOver) {
+      restart();
+      isPlaying = true;
+      playPauseBtn.textContent = 'Pause';
+      return;
+    }
+    isPlaying = !isPlaying;
+    playPauseBtn.textContent = isPlaying ? 'Pause' : 'Play';
+  });
+
   function restart() {
     offsetY = 0;
     score = 0;
     coinsCollected = 0;
     scrollSpeed = SCROLL_SPEED_MIN;
     gameOver = false;
+    isPlaying = false; // Start paused
     player.side = 'left';
     player.x = WALL_X_LEFT;
     initSpikes();
     initCoins();
+    playPauseBtn.textContent = 'Play';
   }
 
-  // Check collision with lava, spikes, coins
   function checkCollision() {
     if (lavaTop() <= player.y + PLAYER_SIZE) {
       gameOver = true;
+      isPlaying = false;
+      playPauseBtn.textContent = 'Play';
       return;
     }
     for (const sp of spikes) {
@@ -176,6 +217,8 @@
           player.y < spScreenY + SPIKE_SIZE / 2
         ) {
           gameOver = true;
+          isPlaying = false;
+          playPauseBtn.textContent = 'Play';
           return;
         }
       }
@@ -185,16 +228,13 @@
       if (coin.collected) continue;
       const coinY = coin.y + offsetY;
       if (coin.side === player.side) {
-        // Simple circular collision check
         const dx = player.x - (coin.side === 'left' ? WALL_X_LEFT : WALL_X_RIGHT);
         const dy = player.y - coinY;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < PLAYER_SIZE) {
           coin.collected = true;
           coinsCollected++;
-          score += 5; // coins add extra score
-
-          // Speed increase capped
+          score += 5;
           scrollSpeed = Math.min(SCROLL_SPEED_MAX, scrollSpeed + SPEED_INCREASE_RATE * 100);
         }
       }
@@ -202,15 +242,12 @@
   }
 
   function update(delta) {
-    if (gameOver) return;
+    if (gameOver || !isPlaying) return;
 
     offsetY += scrollSpeed * (delta / 16);
     score = Math.floor(offsetY / 10) + coinsCollected * 5;
-
-    // Slowly increase speed over time by score (not just coins)
     scrollSpeed = Math.min(SCROLL_SPEED_MAX, SCROLL_SPEED_MIN + SPEED_INCREASE_RATE * score);
 
-    // Recycle spikes and coins that passed bottom
     for (let sp of spikes) {
       if (sp.y + offsetY > H + 40) {
         sp.y -= spikeCount * spikeSpacing;
@@ -222,7 +259,6 @@
       if (coin.y + offsetY > H + 40) {
         coin.y -= spikeCount * spikeSpacing;
         coin.collected = false;
-        // Randomize side but keep safe position - quick check
         for (let i = 0; i < 10; i++) {
           const side = (Math.random() > 0.5) ? 'left' : 'right';
           if (isSafePosition(side, coin.y)) {
@@ -236,7 +272,7 @@
     checkCollision();
   }
 
-  // Draw
+  // Drawing functions unchanged from your original code:
   function drawWall(x) {
     ctx.fillStyle = '#ff3300';
     ctx.fillRect(x - 6, 0, 12, H);
@@ -282,19 +318,14 @@
       if (coin.collected) return;
       const y = coin.y + offsetY;
       if (y < -COIN_SIZE || y > H + COIN_SIZE) return;
-      const x = (coin.side === 'left') ? WALL_X_LEFT : WALL_X_RIGHT;
-
-      // Draw coin as simple circle with shine
+      const x = coin.side === 'left' ? WALL_X_LEFT : WALL_X_RIGHT;
       ctx.beginPath();
       ctx.arc(x, y, COIN_SIZE / 2, 0, Math.PI * 2);
       ctx.fill();
-
-      // Shine highlight
       ctx.beginPath();
       ctx.fillStyle = 'rgba(255,255,255,0.6)';
       ctx.arc(x - 2, y - 2, COIN_SIZE / 5, 0, Math.PI * 2);
       ctx.fill();
-
       ctx.fillStyle = '#ffd700';
     });
   }
@@ -330,7 +361,9 @@
     drawLava();
     drawScore();
 
-    update(delta);
+    if (isPlaying && !gameOver) {
+      update(delta);
+    }
 
     if (gameOver) drawGameOver();
 
@@ -339,7 +372,6 @@
 
   restart();
   requestAnimationFrame(gameLoop);
-
 })();
 </script>
 </body>
