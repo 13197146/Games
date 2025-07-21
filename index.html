@@ -12,9 +12,28 @@
       color: white;
     }
 
-    h1 {
-      text-align: center;
-      margin: 20px 0;
+    .retro-title {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 30px 0;
+    }
+
+    .retro-title button {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .retro-title h1 {
+      color: white;
+      font-size: 2.5em;
+      transition: color 0.3s;
+    }
+
+    .retro-title button:hover h1 {
+      color: #2ecc71;
     }
 
     .grid {
@@ -71,10 +90,15 @@
 </head>
 <body>
 
-  <h1>🎮 Game Menu</h1>
+  <!-- Title / Home Button -->
+  <div class="retro-title">
+    <button onclick="goHome()">
+      <h1>🎮 2D Retro Games</h1>
+    </button>
+  </div>
 
+  <!-- Game Menu Grid -->
   <div class="grid" id="menu">
-    <!-- Game cards with real names -->
     <div class="card" onclick="loadGame('magnetball.html')">
       <img src="magnetball.jpg" alt="Magnet Ball" class="thumb" />
       <div class="info">
@@ -107,6 +131,7 @@
       </div>
     </div>
 
+
     <div class="card" onclick="loadGame('lanehopper.html')">
       <img src="lanehopper.jpg" alt="Lane Hopper" class="thumb" />
       <div class="info">
@@ -116,15 +141,23 @@
     </div>
   </div>
 
-  <!-- Game loader -->
+  <!-- Game Frame -->
   <iframe id="gameFrame"></iframe>
 
+  <!-- JavaScript -->
   <script>
     function loadGame(gameFile) {
       document.getElementById("menu").style.display = "none";
       const frame = document.getElementById("gameFrame");
       frame.src = gameFile;
       frame.style.display = "block";
+    }
+
+    function goHome() {
+      document.getElementById("menu").style.display = "grid";
+      const frame = document.getElementById("gameFrame");
+      frame.src = "";
+      frame.style.display = "none";
     }
   </script>
 
