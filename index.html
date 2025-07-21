@@ -3,27 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2D Retro Games – Play Classic Arcade Games Online</title>
+  <title>2D Retro Games – Play Classic Arcade Games Online for Free</title>
 
   <!-- ✅ SEO Meta Tags -->
-  <meta name="description" content="Play free 2D retro games in your browser with no downloads. Classic arcade games designed for speed and fun." />
-  <meta name="keywords" content="2D retro games, classic arcade games, free browser games, online games, no download games" />
-  <meta name="google-site-verification" content="nuRIoKBIbvQUsGQvfKECzMTpQ-kq3ErTi_VqUrSnZAc" />
-  <meta name="author" content="Games HAO‑F" />
+  <meta name="description" content="Play free 2D retro games instantly in your browser – no ads, no downloads. Enjoy nostalgic arcade-style games made for speed and fun!" />
+  <meta name="keywords" content="2D retro games, classic arcade games, play online games, free browser games, no download games" />
   <meta name="robots" content="index, follow" />
+  <meta name="author" content="Games HAO‑F" />
   <link rel="canonical" href="https://2dretrogames.vercel.app/" />
+  <meta name="google-site-verification" content="nuRIoKBIbvQUsGQvfKECzMTpQ-kq3ErTi_VqUrSnZAc" />
 
-  <!-- ✅ Open Graph (Social Sharing) -->
-  <meta property="og:title" content="2D Retro Games" />
-  <meta property="og:description" content="Play free 2D retro arcade games instantly in your browser – fast and fun!" />
+  <!-- ✅ Open Graph -->
+  <meta property="og:title" content="2D Retro Games – Free Online Classic Arcade Fun" />
+  <meta property="og:description" content="Enjoy 2D arcade-style browser games. No sign-up, no downloads. Just hit play!" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://2dretrogames.vercel.app/" />
   <meta property="og:image" content="https://2dretrogames.vercel.app/thumbnail.jpg" />
 
   <!-- ✅ Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="2D Retro Games" />
-  <meta name="twitter:description" content="Instantly play retro arcade games online, free and no downloads needed." />
+  <meta name="twitter:title" content="2D Retro Games – Instant Arcade Fun" />
+  <meta name="twitter:description" content="Play free 2D retro arcade games instantly in your browser – no downloads!" />
   <meta name="twitter:image" content="https://2dretrogames.vercel.app/thumbnail.jpg" />
 
   <!-- ✅ JSON-LD Structured Data -->
@@ -31,16 +31,25 @@
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "2D Retro Arcade Games",
-    "url": "https://2dretrogames.vercel.app/",
-    "description": "Play free 2D retro arcade games online — fast, fun, and easy to play."
+    "name": "2D Retro Games",
+    "url": "https://2dretrogames.vercel.app",
+    "description": "Free browser-based 2D retro games — classic arcade gameplay, no downloads.",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Games HAO‑F"
+    },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://2dretrogames.vercel.app/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
   }
   </script>
 
   <!-- ✅ Favicon -->
   <link rel="icon" href="/favicon.ico" />
 
-  <!-- ✅ CSS Styles -->
+  <!-- ✅ Internal CSS -->
   <style>
     body {
       margin: 0;
@@ -137,25 +146,24 @@
 
   <!-- Title / Home Button -->
   <div class="retro-title">
-    <button onclick="goHome()">
+    <button onclick="goHome()" aria-label="Go back to game menu">
       <h1>🎮 2D Retro Games</h1>
     </button>
   </div>
 
   <!-- Intro Text for SEO -->
   <section class="intro">
-    <h1>Welcome to 2D Retro Games</h1>
+    <h1>Play Classic 2D Retro Games Online</h1>
     <p>
-      Play your favorite 2D retro games online for free — no downloads, no ads, just pure arcade fun!
-      From fast-paced action to old-school challenges, our games are built to run instantly in your browser.
-      Explore titles like <strong>Snake Sprint</strong>, <strong>Lava Dash</strong>, and more. Built for speed and simplicity.
+      Dive into pixel-perfect arcade action! Enjoy games like <strong>Snake Sprint</strong>, <strong>Lava Dash</strong>, and more —
+      built for speed, simplicity, and fun. No ads. No installs. Just play.
     </p>
   </section>
 
-  <!-- Game Menu Grid -->
+  <!-- Game Menu -->
   <div class="grid" id="menu">
     <div class="card" onclick="loadGame('magnetball.html')">
-      <img src="magnetball.jpg" alt="Magnet Ball Game Screenshot" class="thumb" />
+      <img src="magnetball.jpg" alt="Play Magnet Ball game" class="thumb" />
       <div class="info">
         <div class="title">Magnet Ball</div>
         <div class="rating">75</div>
@@ -163,7 +171,7 @@
     </div>
 
     <div class="card" onclick="loadGame('tailwind.html')">
-      <img src="tailwind.jpg" alt="Tail Wind Game Screenshot" class="thumb" />
+      <img src="tailwind.jpg" alt="Play Tail Wind game" class="thumb" />
       <div class="info">
         <div class="title">Tail Wind</div>
         <div class="rating">82</div>
@@ -171,7 +179,7 @@
     </div>
 
     <div class="card" onclick="loadGame('lavadash.html')">
-      <img src="lavadash.jpg" alt="Lava Dash Game Screenshot" class="thumb" />
+      <img src="lavadash.jpg" alt="Play Lava Dash game" class="thumb" />
       <div class="info">
         <div class="title">Lava Dash</div>
         <div class="rating">69</div>
@@ -179,7 +187,7 @@
     </div>
 
     <div class="card" onclick="loadGame('snakesprint.html')">
-      <img src="snakesprint.jpg" alt="Snake Sprint Game Screenshot" class="thumb" />
+      <img src="snakesprint.jpg" alt="Play Snake Sprint game" class="thumb" />
       <div class="info">
         <div class="title">Snake Sprint</div>
         <div class="rating">88</div>
@@ -187,7 +195,7 @@
     </div>
 
     <div class="card" onclick="loadGame('lanehopper.html')">
-      <img src="lanehopper.jpg" alt="Lane Hopper Game Screenshot" class="thumb" />
+      <img src="lanehopper.jpg" alt="Play Lane Hopper game" class="thumb" />
       <div class="info">
         <div class="title">Lane Hopper</div>
         <div class="rating">74</div>
@@ -195,10 +203,10 @@
     </div>
   </div>
 
-  <!-- Game Frame -->
-  <iframe id="gameFrame"></iframe>
+  <!-- Game Player Frame -->
+  <iframe id="gameFrame" title="Game Player Frame"></iframe>
 
-  <!-- JavaScript -->
+  <!-- JavaScript for game loading -->
   <script>
     function loadGame(gameFile) {
       document.getElementById("menu").style.display = "none";
