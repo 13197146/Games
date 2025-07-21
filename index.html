@@ -3,7 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Game Menu</title>
+  <title>2D Retro Games – Play Classic Arcade Games Online</title>
+
+  <!-- ✅ SEO Meta Tags -->
+  <meta name="description" content="Play free 2D retro games in your browser with no downloads. Classic arcade games designed for speed and fun." />
+  <meta name="keywords" content="2D retro games, classic arcade games, free browser games, online games, no download games" />
+  <meta name="author" content="Games HAO-F" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://2dretrogames.vercel.app/" />
+
+  <!-- ✅ Open Graph (Social Sharing) -->
+  <meta property="og:title" content="2D Retro Games" />
+  <meta property="og:description" content="Play free 2D retro arcade games instantly in your browser – fast and fun!" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://2dretrogames.vercel.app/" />
+  <meta property="og:image" content="https://2dretrogames.vercel.app/thumbnail.jpg" />
+
+  <!-- ✅ Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="2D Retro Games" />
+  <meta name="twitter:description" content="Instantly play retro arcade games online, free and no downloads needed." />
+  <meta name="twitter:image" content="https://2dretrogames.vercel.app/thumbnail.jpg" />
+
+  <!-- ✅ Favicon -->
+  <link rel="icon" href="/favicon.ico" />
+
   <style>
     body {
       margin: 0;
@@ -34,6 +58,13 @@
 
     .retro-title button:hover h1 {
       color: #2ecc71;
+    }
+
+    section.intro {
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+      text-align: center;
     }
 
     .grid {
@@ -88,6 +119,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- Title / Home Button -->
@@ -97,10 +129,20 @@
     </button>
   </div>
 
+  <!-- Intro Text for SEO -->
+  <section class="intro">
+    <h1>Welcome to 2D Retro Games</h1>
+    <p>
+      Play your favorite 2D retro games online for free — no downloads, no ads, just pure arcade fun!
+      From fast-paced action to old-school challenges, our games are built to run instantly in your browser.
+      Explore titles like <strong>Snake Sprint</strong>, <strong>Lava Dash</strong>, and more. Built for speed and simplicity.
+    </p>
+  </section>
+
   <!-- Game Menu Grid -->
   <div class="grid" id="menu">
     <div class="card" onclick="loadGame('magnetball.html')">
-      <img src="magnetball.jpg" alt="Magnet Ball" class="thumb" />
+      <img src="magnetball.jpg" alt="Magnet Ball Game Screenshot" class="thumb" />
       <div class="info">
         <div class="title">Magnet Ball</div>
         <div class="rating">75</div>
@@ -108,7 +150,7 @@
     </div>
 
     <div class="card" onclick="loadGame('tailwind.html')">
-      <img src="tailwind.jpg" alt="Tail Wind" class="thumb" />
+      <img src="tailwind.jpg" alt="Tail Wind Game Screenshot" class="thumb" />
       <div class="info">
         <div class="title">Tail Wind</div>
         <div class="rating">82</div>
@@ -116,7 +158,7 @@
     </div>
 
     <div class="card" onclick="loadGame('lavadash.html')">
-      <img src="lavadash.jpg" alt="Lava Dash" class="thumb" />
+      <img src="lavadash.jpg" alt="Lava Dash Game Screenshot" class="thumb" />
       <div class="info">
         <div class="title">Lava Dash</div>
         <div class="rating">69</div>
@@ -124,16 +166,15 @@
     </div>
 
     <div class="card" onclick="loadGame('snakesprint.html')">
-      <img src="snakesprint.jpg" alt="Snake Sprint" class="thumb" />
+      <img src="snakesprint.jpg" alt="Snake Sprint Game Screenshot" class="thumb" />
       <div class="info">
         <div class="title">Snake Sprint</div>
         <div class="rating">88</div>
       </div>
     </div>
 
-
     <div class="card" onclick="loadGame('lanehopper.html')">
-      <img src="lanehopper.jpg" alt="Lane Hopper" class="thumb" />
+      <img src="lanehopper.jpg" alt="Lane Hopper Game Screenshot" class="thumb" />
       <div class="info">
         <div class="title">Lane Hopper</div>
         <div class="rating">74</div>
