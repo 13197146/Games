@@ -24,6 +24,21 @@
       left: 10px;
       font-size: 16px;
       z-index: 10;
+      user-select: none;
+    }
+    #playPauseBtn {
+      margin-top: 8px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #444;
+      border: none;
+      color: #fff;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
+    #playPauseBtn:hover {
+      background: #666;
     }
   </style>
 </head>
@@ -32,6 +47,7 @@
   <div id="ui">
     <div>Distance: <span id="distance">0</span> m</div>
     <div>Best: <span id="best">0</span> m</div>
+    <button id="playPauseBtn">Pause</button>
   </div>
 
 <script>
@@ -73,8 +89,15 @@ let distance = 0;
 let best = parseInt(localStorage.getItem("bestDistance")) || 0;
 let gameOver = false;
 let slowDownTimer = 0;
+let paused = false;
 
 document.getElementById("best").textContent = best;
+
+const playPauseBtn = document.getElementById("playPauseBtn");
+playPauseBtn.addEventListener("click", () => {
+  paused = !paused;
+  playPauseBtn.textContent = paused ? "Play" : "Pause";
+});
 
 function resetGame() {
   player.y = canvas.height - GROUND_HEIGHT - PLAYER_SIZE;
@@ -95,7 +118,7 @@ function resetGame() {
 }
 
 function jump() {
-  if (player.onGround && !gameOver) {
+  if (player.onGround && !gameOver && !paused) {
     player.vy = player.jumpBoost ? JUMP_VELOCITY * 1.5 : JUMP_VELOCITY;
     player.onGround = false;
   }
@@ -105,14 +128,22 @@ function jump() {
 window.addEventListener("keydown", e => {
   if (e.code === "Space" || e.code === "ArrowUp") jump();
 });
-window.addEventListener("mousedown", jump);
+
+window.addEventListener("mousedown", e => {
+  if (e.target.tagName !== "BUTTON") {
+    jump();
+  }
+});
+
 window.addEventListener("touchstart", e => {
-  e.preventDefault();
-  jump();
+  if (e.target.tagName !== "BUTTON") {
+    e.preventDefault();
+    jump();
+  }
 }, { passive: false });
 
 function update(delta) {
-  if (gameOver) return;
+  if (gameOver || paused) return;
 
   player.vy += GRAVITY;
   player.y += player.vy;
