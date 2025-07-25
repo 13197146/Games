@@ -3,1215 +3,999 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gem Crush - Match-3 Puzzle Game</title>
-    
+    <title>Candy Crush with Time Bombs</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
         }
 
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            overflow: hidden;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            position: relative;
+            color: white;
         }
 
         .game-container {
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.1);
-            position: relative;
-            display: flex;
-            flex-direction: column;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            padding: 20px;
         }
 
-        /* Start Screen */
-        .start-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            text-align: center;
-            padding: 20px;
+        .game-header {
+            margin-bottom: 20px;
         }
 
         .game-title {
-            font-size: 4rem;
+            font-size: 2.5em;
             font-weight: bold;
-            color: #ffe66d;
-            margin-bottom: 2rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            animation: titleGlow 2s ease-in-out infinite alternate;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
         }
 
-        @keyframes titleGlow {
-            from { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); }
-            to { text-shadow: 2px 2px 20px rgba(255, 230, 109, 0.8); }
-        }
-
-        .start-button, .menu-button {
-            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            color: white;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .start-button:hover, .menu-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        /* Game UI */
-        .game-ui {
-            display: none;
-            flex-direction: column;
-            height: 100vh;
-            width: 100vw;
-        }
-
-        .top-bar {
+        .game-stats {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            background: rgba(0, 0, 0, 0.3);
-            flex-wrap: wrap;
+            justify-content: space-around;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
         }
 
-        .score-info {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .info-item {
+        .stat {
             text-align: center;
-            min-width: 60px;
         }
 
-        .info-label {
-            font-size: 0.8rem;
+        .stat-label {
+            font-size: 0.9em;
             opacity: 0.8;
-            margin-bottom: 3px;
+            margin-bottom: 5px;
         }
 
-        .info-value {
-            font-size: 1.2rem;
+        .stat-value {
+            font-size: 1.5em;
             font-weight: bold;
-            color: #ffe66d;
         }
 
-        .level-progress {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            height: 15px;
-            width: 150px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #4ecdc4, #44a08d);
-            border-radius: 10px;
-            transition: width 0.5s ease;
-            width: 0%;
-        }
-
-        .game-board-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            min-height: 0;
-        }
-
-        .game-board {
+        .game-grid {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(8, 1fr);
-            gap: 2px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 8px;
-            border-radius: 10px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            width: min(90vw, 70vh);
-            height: min(90vw, 70vh);
-            aspect-ratio: 1;
+            gap: 3px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 15px;
+            margin: 0 auto;
+            max-width: 400px;
         }
 
-        .gem {
+        .cell {
             aspect-ratio: 1;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
             position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            user-select: none;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
 
-        .gem:hover {
+        .cell:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
         }
 
-        .gem.selected {
+        .cell.selected {
             transform: scale(1.1);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-            border-color: #ffe66d;
-            border-width: 2px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.8);
         }
 
-        .gem.matching {
-            animation: pulse 0.5s ease-in-out;
+        .cell.red { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
+        .cell.blue { background: linear-gradient(135deg, #4ecdc4, #44a08d); }
+        .cell.green { background: linear-gradient(135deg, #a8e6cf, #7fcdcd); }
+        .cell.yellow { background: linear-gradient(135deg, #ffd93d, #f39c12); }
+        .cell.purple { background: linear-gradient(135deg, #c44569, #f8b500); }
+        .cell.orange { background: linear-gradient(135deg, #fd79a8, #fdcb6e); }
+
+        .cell.bomb {
+            background: linear-gradient(135deg, #2c2c2c, #1a1a1a) !important;
+            border: 2px solid #ff4757;
+            animation: pulse 1s infinite;
+            position: relative;
+        }
+
+        .bomb-countdown {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: bold;
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
-        .gem.falling {
-            animation: fall 0.5s ease-in;
+        @keyframes explode {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(0); opacity: 0; }
         }
 
-        @keyframes fall {
-            0% { transform: translateY(-50px) scale(0.8); opacity: 0; }
-            100% { transform: translateY(0) scale(1); opacity: 1; }
+        @keyframes match {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(0); opacity: 0; }
         }
 
-        /* Gem Colors with Emojis */
-        .gem-red { 
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24); 
-        }
-        .gem-red::before { content: '💎'; }
-
-        .gem-blue { 
-            background: linear-gradient(135deg, #4ecdc4, #0097e6); 
-        }
-        .gem-blue::before { content: '🔷'; }
-
-        .gem-green { 
-            background: linear-gradient(135deg, #26de81, #20bf6b); 
-        }
-        .gem-green::before { content: '💚'; }
-
-        .gem-yellow { 
-            background: linear-gradient(135deg, #ffe66d, #feca57); 
-        }
-        .gem-yellow::before { content: '⭐'; }
-
-        .gem-purple { 
-            background: linear-gradient(135deg, #a55eea, #8b49c9); 
-        }
-        .gem-purple::before { content: '🟣'; }
-
-        .gem-orange { 
-            background: linear-gradient(135deg, #ff8e53, #ff6348); 
-        }
-        .gem-orange::before { content: '🧡'; }
-
-        /* Power-ups */
-        .power-ups {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            flex-wrap: wrap;
+        .cell.exploding {
+            animation: explode 0.5s ease-out;
         }
 
-        .power-up {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: all 0.3s;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
-            position: relative;
-            color: white;
+        .cell.matching {
+            animation: match 0.4s ease-out;
         }
 
-        .power-up:hover {
-            transform: scale(1.05);
-        }
-
-        .power-up.bomb { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
-        .power-up.shuffle { background: linear-gradient(135deg, #4ecdc4, #0097e6); }
-        .power-up.color-bomb { background: linear-gradient(135deg, #a55eea, #8b49c9); }
-
-        .power-up-count {
-            position: absolute;
-            top: -3px;
-            right: -3px;
-            background: #ffe66d;
-            color: #333;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        /* Game Over Screen */
-        .game-over-screen {
-            position: absolute;
+        .game-over {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
+            background: rgba(0,0,0,0.8);
+            display: flex;
             align-items: center;
-            z-index: 2000;
-            text-align: center;
-            padding: 20px;
+            justify-content: center;
+            z-index: 1000;
         }
 
-        .game-over-title {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: #ff6b6b;
+        .game-over-content {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .game-over h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
         }
 
         .final-score {
-            font-size: 1.8rem;
-            margin-bottom: 2rem;
-            color: #ffe66d;
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            opacity: 0.9;
         }
 
-        /* Sound Toggle */
-        .sound-toggle {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+        .play-again-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
             color: white;
-            font-size: 1.2rem;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 25px;
             cursor: pointer;
-            transition: all 0.3s;
-            z-index: 1001;
+            transition: transform 0.2s;
+            font-weight: bold;
         }
 
-        .sound-toggle:hover {
-            background: rgba(255, 255, 255, 0.3);
+        .play-again-btn:hover {
+            transform: scale(1.05);
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .game-title {
-                font-size: 2.5rem;
-            }
-            
-            .top-bar {
-                flex-direction: column;
-                gap: 8px;
-                padding: 8px;
-            }
-            
-            .score-info {
-                gap: 10px;
-            }
-            
-            .info-value {
-                font-size: 1rem;
-            }
-            
-            .level-progress {
-                width: 120px;
-                height: 12px;
-            }
-            
-            .power-up {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-            }
-
-            .gem {
-                font-size: 1.2rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .game-title {
-                font-size: 2rem;
-            }
-            
-            .game-board {
-                width: 95vw;
-                height: 95vw;
-                max-height: 60vh;
-            }
-            
-            .gem {
-                font-size: 1rem;
-            }
-        }
-
-        /* Particle Effects */
-        .particle {
+        .floating-score {
             position: absolute;
             pointer-events: none;
-            border-radius: 50%;
-            z-index: 1000;
+            font-weight: bold;
+            color: #ffd93d;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+
+        @media (max-width: 500px) {
+            .game-title { font-size: 2em; }
+            .game-grid { 
+                max-width: 90vw; 
+                gap: 2px;
+                padding: 8px;
+            }
+            .cell { 
+                font-size: 1.2em; 
+                border-radius: 6px;
+            }
+            .game-stats {
+                padding: 10px;
+                margin-bottom: 15px;
+            }
+            .stat-value {
+                font-size: 1.3em;
+            }
+            .bomb-countdown {
+                width: 18px;
+                height: 18px;
+                font-size: 0.7em;
+            }
+        }
+
+        /* Improve touch feedback */
+        .cell:active {
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <!-- Start Screen -->
-        <div class="start-screen" id="startScreen">
-            <h1 class="game-title">💎 GEM CRUSH 💎</h1>
-            <p style="font-size: 1.1rem; margin-bottom: 2rem; opacity: 0.9;">
-                Match colorful gems to score points and complete levels!
-            </p>
-            <button class="start-button" onclick="startGame()">🎮 Start Game</button>
-            <button class="menu-button" onclick="showTutorial()">📖 How to Play</button>
-            <button class="menu-button" onclick="showHighScores()">🏆 High Scores</button>
-        </div>
-
-        <!-- Game UI -->
-        <div class="game-ui" id="gameUI">
-            <div class="top-bar">
-                <div class="score-info">
-                    <div class="info-item">
-                        <div class="info-label">SCORE</div>
-                        <div class="info-value" id="score">0</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">LEVEL</div>
-                        <div class="info-value" id="level">1</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">MOVES</div>
-                        <div class="info-value" id="moves">30</div>
-                    </div>
+        <div class="game-header">
+            <h1 class="game-title">💎 Candy Bomb Crush</h1>
+            <div class="game-stats">
+                <div class="stat">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value" id="score">0</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">TARGET</div>
-                    <div class="level-progress">
-                        <div class="progress-bar" id="progressBar"></div>
-                    </div>
-                    <div class="info-value" id="target">1000</div>
+                <div class="stat">
+                    <div class="stat-label">Moves</div>
+                    <div class="stat-value" id="moves">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Defused</div>
+                    <div class="stat-value" id="defused">0</div>
                 </div>
             </div>
-
-            <div class="game-board-container">
-                <div class="game-board" id="gameBoard"></div>
-            </div>
-
-            <div class="power-ups">
-                <button class="power-up bomb" onclick="usePowerUp('bomb')" title="Bomb - Destroys 3x3 area">
-                    💣
-                    <span class="power-up-count" id="bombCount">3</span>
-                </button>
-                <button class="power-up shuffle" onclick="usePowerUp('shuffle')" title="Shuffle - Rearranges board">
-                    🔄
-                    <span class="power-up-count" id="shuffleCount">2</span>
-                </button>
-                <button class="power-up color-bomb" onclick="usePowerUp('colorBomb')" title="Color Bomb - Removes all gems of selected color">
-                    🌈
-                    <span class="power-up-count" id="colorBombCount">1</span>
-                </button>
-            </div>
         </div>
-
-        <!-- Game Over Screen -->
-        <div class="game-over-screen" id="gameOverScreen">
-            <h2 class="game-over-title" id="gameOverTitle">Level Complete!</h2>
-            <div class="final-score">Final Score: <span id="finalScore">0</span></div>
-            <button class="start-button" onclick="nextLevel()">Next Level</button>
-            <button class="menu-button" onclick="restartGame()">Play Again</button>
-            <button class="menu-button" onclick="backToMenu()">Main Menu</button>
-        </div>
-
-        <!-- Sound Toggle -->
-        <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊</button>
+        <div class="game-grid" id="gameGrid"></div>
     </div>
 
     <script>
-        // Game State
-        let gameState = {
-            board: [],
-            score: 0,
-            level: 1,
-            moves: 30,
-            target: 1000,
-            selectedGem: null,
-            isProcessing: false,
-            soundEnabled: true,
-            powerUps: {
-                bomb: 3,
-                shuffle: 2,
-                colorBomb: 1
-            },
-            activePowerUp: null
-        };
+        class AudioManager {
+            constructor() {
+                this.sounds = {};
+                this.enabled = true;
+                this.initSounds();
+            }
 
-        const BOARD_SIZE = 8;
-        const GEM_TYPES = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
-        const COMBO_MULTIPLIER = 50;
-
-        // Game Initialization
-        function initGame() {
-            createBoard();
-            updateUI();
-            loadGameData();
-        }
-
-        function createBoard() {
-            const board = document.getElementById('gameBoard');
-            board.innerHTML = '';
-            gameState.board = [];
-
-            for (let row = 0; row < BOARD_SIZE; row++) {
-                gameState.board[row] = [];
-                for (let col = 0; col < BOARD_SIZE; col++) {
-                    const gem = createGem(row, col);
-                    gameState.board[row][col] = gem;
-                    board.appendChild(gem.element);
+            initSounds() {
+                // Create audio contexts for different sounds using Web Audio API
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.createSounds();
+                } catch (e) {
+                    console.log('Web Audio API not supported');
+                    this.enabled = false;
                 }
             }
 
-            // Ensure no initial matches
-            removeInitialMatches();
+            createSounds() {
+                // Create different sound frequencies for game events
+                this.sounds = {
+                    match: () => this.playTone(523.25, 0.1, 'square'), // C5
+                    swap: () => this.playTone(440, 0.05, 'sine'), // A4
+                    bomb: () => this.playTone(196, 0.3, 'sawtooth'), // G3
+                    defuse: () => this.playSequence([523.25, 659.25, 783.99], 0.15), // C5-E5-G5
+                    explosion: () => this.playNoise(0.5),
+                    cascade: () => this.playTone(880, 0.1, 'triangle') // A5
+                };
+            }
+
+            playTone(frequency, duration, type = 'sine') {
+                if (!this.enabled || !this.audioContext) return;
+
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+
+                oscillator.frequency.value = frequency;
+                oscillator.type = type;
+
+                gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.1, this.audioContext.currentTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + duration);
+            }
+
+            playSequence(frequencies, noteDuration) {
+                if (!this.enabled) return;
+                
+                frequencies.forEach((freq, index) => {
+                    setTimeout(() => {
+                        this.playTone(freq, noteDuration * 0.8, 'sine');
+                    }, index * noteDuration * 200);
+                });
+            }
+
+            playNoise(duration) {
+                if (!this.enabled || !this.audioContext) return;
+
+                const bufferSize = this.audioContext.sampleRate * duration;
+                const noiseBuffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
+                }
+
+                const whiteNoise = this.audioContext.createBufferSource();
+                const gainNode = this.audioContext.createGain();
+
+                whiteNoise.buffer = noiseBuffer;
+                whiteNoise.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+
+                gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+
+                whiteNoise.start(this.audioContext.currentTime);
+                whiteNoise.stop(this.audioContext.currentTime + duration);
+            }
+
+            play(soundName) {
+                if (this.sounds[soundName]) {
+                    this.sounds[soundName]();
+                }
+            }
+
+            resume() {
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+            }
         }
 
-        function createGem(row, col) {
-            const element = document.createElement('div');
-            element.className = 'gem';
-            element.dataset.row = row;
-            element.dataset.col = col;
-            
-            const type = getRandomGemType();
-            element.classList.add(`gem-${type}`);
-            
-            element.addEventListener('click', () => selectGem(row, col));
-            element.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                selectGem(row, col);
-            });
+        class CandyCrushGame {
+            constructor() {
+                this.gridSize = 8;
+                this.colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
+                this.colorEmojis = {
+                    red: '🍎',
+                    blue: '🫐', 
+                    green: '🍏',
+                    yellow: '🍌',
+                    purple: '🍇',
+                    orange: '🍊'
+                };
+                this.grid = [];
+                this.selectedCell = null;
+                this.score = 0;
+                this.moves = 0;
+                this.bombs = [];
+                this.gameOver = false;
+                this.bombsDefused = 0;
+                this.currentBombLimit = 1;
+                this.baseCountdown = 5;
+                this.audio = new AudioManager();
+                this.touchStartPos = null;
+                this.touchStartCell = null;
+                this.isProcessing = false;
+                
+                this.init();
+            }
 
-            return {
-                element: element,
-                type: type,
-                row: row,
-                col: col
-            };
-        }
+            init() {
+                this.createGrid();
+                this.renderGrid();
+                this.addEventListeners();
+                
+                // Spawn first bomb after 5 moves
+                setTimeout(() => {
+                    if (!this.gameOver) this.spawnBomb();
+                }, 1000);
+            }
 
-        function getRandomGemType() {
-            return GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
-        }
+            createGrid() {
+                this.grid = [];
+                for (let row = 0; row < this.gridSize; row++) {
+                    this.grid[row] = [];
+                    for (let col = 0; col < this.gridSize; col++) {
+                        this.grid[row][col] = this.getRandomColor();
+                    }
+                }
+                
+                // Remove initial matches
+                this.removeInitialMatches();
+            }
 
-        function removeInitialMatches() {
-            let foundMatches = true;
-            while (foundMatches) {
-                foundMatches = false;
-                for (let row = 0; row < BOARD_SIZE; row++) {
-                    for (let col = 0; col < BOARD_SIZE; col++) {
-                        if (hasMatch(row, col)) {
-                            changeGemType(row, col);
-                            foundMatches = true;
+            removeInitialMatches() {
+                let hasMatches = true;
+                while (hasMatches) {
+                    hasMatches = false;
+                    for (let row = 0; row < this.gridSize; row++) {
+                        for (let col = 0; col < this.gridSize; col++) {
+                            if (this.checkMatch(row, col, this.grid[row][col])) {
+                                this.grid[row][col] = this.getRandomColor();
+                                hasMatches = true;
+                            }
                         }
                     }
                 }
             }
-        }
 
-        function hasMatch(row, col) {
-            const gem = gameState.board[row][col];
-            
-            // Check horizontal
-            let horizontalCount = 1;
-            for (let i = col - 1; i >= 0 && gameState.board[row][i].type === gem.type; i--) {
-                horizontalCount++;
-            }
-            for (let i = col + 1; i < BOARD_SIZE && gameState.board[row][i].type === gem.type; i++) {
-                horizontalCount++;
-            }
-            
-            // Check vertical
-            let verticalCount = 1;
-            for (let i = row - 1; i >= 0 && gameState.board[i][col].type === gem.type; i--) {
-                verticalCount++;
-            }
-            for (let i = row + 1; i < BOARD_SIZE && gameState.board[i][col].type === gem.type; i++) {
-                verticalCount++;
-            }
-            
-            return horizontalCount >= 3 || verticalCount >= 3;
-        }
-
-        function changeGemType(row, col) {
-            let newType;
-            do {
-                newType = getRandomGemType();
-            } while (newType === gameState.board[row][col].type);
-            
-            gameState.board[row][col].type = newType;
-            gameState.board[row][col].element.className = `gem gem-${newType}`;
-        }
-
-        // Game Logic
-        function selectGem(row, col) {
-            if (gameState.isProcessing) return;
-
-            const gem = gameState.board[row][col];
-            
-            if (gameState.activePowerUp) {
-                usePowerUpOnGem(row, col);
-                return;
-            }
-
-            if (gameState.selectedGem) {
-                if (gameState.selectedGem.row === row && gameState.selectedGem.col === col) {
-                    // Deselect
-                    gem.element.classList.remove('selected');
-                    gameState.selectedGem = null;
-                } else if (areAdjacent(gameState.selectedGem, {row, col})) {
-                    // Swap gems
-                    swapGems(gameState.selectedGem, {row, col});
-                } else {
-                    // Select new gem
-                    gameState.selectedGem.element.classList.remove('selected');
-                    gem.element.classList.add('selected');
-                    gameState.selectedGem = {row, col};
-                }
-            } else {
-                // Select gem
-                gem.element.classList.add('selected');
-                gameState.selectedGem = {row, col};
-            }
-        }
-
-        function areAdjacent(gem1, gem2) {
-            const rowDiff = Math.abs(gem1.row - gem2.row);
-            const colDiff = Math.abs(gem1.col - gem2.col);
-            return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
-        }
-
-        function swapGems(gem1, gem2) {
-            gameState.isProcessing = true;
-            
-            // Clear selection
-            if (gameState.selectedGem) {
-                gameState.board[gameState.selectedGem.row][gameState.selectedGem.col].element.classList.remove('selected');
-                gameState.selectedGem = null;
-            }
-
-            // Swap types
-            const temp = gameState.board[gem1.row][gem1.col].type;
-            gameState.board[gem1.row][gem1.col].type = gameState.board[gem2.row][gem2.col].type;
-            gameState.board[gem2.row][gem2.col].type = temp;
-
-            // Update visual
-            updateGemVisual(gem1.row, gem1.col);
-            updateGemVisual(gem2.row, gem2.col);
-
-            // Check for matches
-            setTimeout(() => {
-                const matches1 = findMatches(gem1.row, gem1.col);
-                const matches2 = findMatches(gem2.row, gem2.col);
+            checkMatch(row, col, color) {
+                if (color === 'bomb') return false;
                 
-                if (matches1.length > 0 || matches2.length > 0) {
-                    // Valid move
-                    gameState.moves--;
-                    processMatches();
-                } else {
-                    // Invalid move - swap back
-                    const temp = gameState.board[gem1.row][gem1.col].type;
-                    gameState.board[gem1.row][gem1.col].type = gameState.board[gem2.row][gem2.col].type;
-                    gameState.board[gem2.row][gem2.col].type = temp;
-                    
-                    updateGemVisual(gem1.row, gem1.col);
-                    updateGemVisual(gem2.row, gem2.col);
-                    
-                    gameState.isProcessing = false;
+                // Check horizontal
+                let horizontalCount = 1;
+                // Check left
+                for (let c = col - 1; c >= 0 && this.grid[row][c] === color; c--) {
+                    horizontalCount++;
                 }
-                updateUI();
-            }, 300);
-        }
+                // Check right
+                for (let c = col + 1; c < this.gridSize && this.grid[row][c] === color; c++) {
+                    horizontalCount++;
+                }
+                
+                // Check vertical
+                let verticalCount = 1;
+                // Check up
+                for (let r = row - 1; r >= 0 && this.grid[r][col] === color; r--) {
+                    verticalCount++;
+                }
+                // Check down
+                for (let r = row + 1; r < this.gridSize && this.grid[r][col] === color; r++) {
+                    verticalCount++;
+                }
+                
+                return horizontalCount >= 3 || verticalCount >= 3;
+            }
 
-        function updateGemVisual(row, col) {
-            const gem = gameState.board[row][col];
-            gem.element.className = `gem gem-${gem.type}`;
-        }
+            getRandomColor() {
+                return this.colors[Math.floor(Math.random() * this.colors.length)];
+            }
 
-        function findMatches(row, col) {
-            const gem = gameState.board[row][col];
-            const matches = new Set();
-            
-            // Find horizontal matches
-            const horizontalMatches = [{row, col}];
-            
-            // Check left
-            for (let c = col - 1; c >= 0 && gameState.board[row][c].type === gem.type; c--) {
-                horizontalMatches.push({row, col: c});
+            spawnBomb() {
+                // Only spawn if we haven't reached the current bomb limit
+                if (this.bombs.length >= this.currentBombLimit) {
+                    return;
+                }
+                
+                const emptyCells = [];
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        if (this.grid[row][col] !== 'bomb') {
+                            emptyCells.push({ row, col });
+                        }
+                    }
+                }
+                
+                if (emptyCells.length > 0) {
+                    const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                    this.grid[randomCell.row][randomCell.col] = 'bomb';
+                    this.bombs.push({
+                        row: randomCell.row,
+                        col: randomCell.col,
+                        countdown: this.baseCountdown
+                    });
+                    this.updateBombCount();
+                    this.renderGrid();
+                }
             }
-            
-            // Check right
-            for (let c = col + 1; c < BOARD_SIZE && gameState.board[row][c].type === gem.type; c++) {
-                horizontalMatches.push({row, col: c});
-            }
-            
-            if (horizontalMatches.length >= 3) {
-                horizontalMatches.forEach(match => matches.add(`${match.row}-${match.col}`));
-            }
-            
-            // Find vertical matches
-            const verticalMatches = [{row, col}];
-            
-            // Check up
-            for (let r = row - 1; r >= 0 && gameState.board[r][col].type === gem.type; r--) {
-                verticalMatches.push({row: r, col});
-            }
-            
-            // Check down
-            for (let r = row + 1; r < BOARD_SIZE && gameState.board[r][col].type === gem.type; r++) {
-                verticalMatches.push({row: r, col});
-            }
-            
-            if (verticalMatches.length >= 3) {
-                verticalMatches.forEach(match => matches.add(`${match.row}-${match.col}`));
-            }
-            
-            return Array.from(matches).map(pos => {
-                const [r, c] = pos.split('-').map(Number);
-                return {row: r, col: c};
-            });
-        }
 
-        function processMatches() {
-            let allMatches = [];
+            renderGrid() {
+                const gridElement = document.getElementById('gameGrid');
+                gridElement.innerHTML = '';
+                
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = `cell ${this.grid[row][col]}`;
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        if (this.grid[row][col] === 'bomb') {
+                            const bomb = this.bombs.find(b => b.row === row && b.col === col);
+                            cell.innerHTML = `💣<div class="bomb-countdown">${bomb ? bomb.countdown : '0'}</div>`;
+                            
+                            if (bomb && bomb.countdown <= 1) {
+                                cell.style.animation = 'pulse 0.3s infinite';
+                            }
+                        } else {
+                            cell.textContent = this.colorEmojis[this.grid[row][col]];
+                        }
+                        
+                        gridElement.appendChild(cell);
+                    }
+                }
+            }
+
+            addEventListeners() {
+                const grid = document.getElementById('gameGrid');
+                
+                // Mouse events
+                grid.addEventListener('click', (e) => this.handleCellClick(e));
+                
+                // Enhanced touch events with better swipe detection
+                grid.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const rect = grid.getBoundingClientRect();
+                    
+                    this.touchStartPos = {
+                        x: touch.clientX - rect.left,
+                        y: touch.clientY - rect.top
+                    };
+                    
+                    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                    if (element && element.classList.contains('cell')) {
+                        this.touchStartCell = {
+                            element: element,
+                            row: parseInt(element.dataset.row),
+                            col: parseInt(element.dataset.col)
+                        };
+                        
+                        // Visual feedback
+                        element.style.transform = 'scale(1.1)';
+                        element.style.transition = 'transform 0.1s';
+                    }
+                }, { passive: false });
+                
+                grid.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
+                
+                grid.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    
+                    if (!this.touchStartPos || !this.touchStartCell || this.isProcessing) {
+                        this.resetTouchState();
+                        return;
+                    }
+                    
+                    const touch = e.changedTouches[0];
+                    const rect = grid.getBoundingClientRect();
+                    const touchEndPos = {
+                        x: touch.clientX - rect.left,
+                        y: touch.clientY - rect.top
+                    };
+                    
+                    const deltaX = touchEndPos.x - this.touchStartPos.x;
+                    const deltaY = touchEndPos.y - this.touchStartPos.y;
+                    const minSwipeDistance = 30; // Minimum distance for swipe
+                    
+                    // Reset visual feedback
+                    this.touchStartCell.element.style.transform = '';
+                    this.touchStartCell.element.style.transition = '';
+                    
+                    // Determine swipe direction
+                    if (Math.abs(deltaX) > minSwipeDistance || Math.abs(deltaY) > minSwipeDistance) {
+                        let targetRow = this.touchStartCell.row;
+                        let targetCol = this.touchStartCell.col;
+                        
+                        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                            // Horizontal swipe
+                            if (deltaX > 0) {
+                                targetCol++; // Right
+                            } else {
+                                targetCol--; // Left
+                            }
+                        } else {
+                            // Vertical swipe
+                            if (deltaY > 0) {
+                                targetRow++; // Down
+                            } else {
+                                targetRow--; // Up
+                            }
+                        }
+                        
+                        // Check bounds and attempt swap
+                        if (targetRow >= 0 && targetRow < this.gridSize && 
+                            targetCol >= 0 && targetCol < this.gridSize) {
+                            this.attemptSwap(
+                                { row: this.touchStartCell.row, col: this.touchStartCell.col },
+                                { row: targetRow, col: targetCol }
+                            );
+                        }
+                    } else {
+                        // Short tap - treat as click
+                        this.handleCellClick({ target: this.touchStartCell.element });
+                    }
+                    
+                    this.resetTouchState();
+                }, { passive: false });
+                
+                // Resume audio context on first user interaction
+                document.addEventListener('touchstart', () => this.audio.resume(), { once: true });
+                document.addEventListener('click', () => this.audio.resume(), { once: true });
+            }
             
-            // Find all matches on the board
-            for (let row = 0; row < BOARD_SIZE; row++) {
-                for (let col = 0; col < BOARD_SIZE; col++) {
-                    const matches = findMatches(row, col);
-                    matches.forEach(match => {
-                        if (!allMatches.some(m => m.row === match.row && m.col === match.col)) {
-                            allMatches.push(match);
+            resetTouchState() {
+                if (this.touchStartCell) {
+                    this.touchStartCell.element.style.transform = '';
+                    this.touchStartCell.element.style.transition = '';
+                }
+                this.touchStartPos = null;
+                this.touchStartCell = null;
+            }
+
+            handleCellClick(e) {
+                if (this.gameOver || this.isProcessing) return;
+                
+                const cell = e.target.closest('.cell');
+                if (!cell) return;
+                
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                
+                if (this.selectedCell === null) {
+                    this.selectedCell = { row, col };
+                    cell.classList.add('selected');
+                    this.audio.play('swap');
+                } else {
+                    document.querySelector('.cell.selected')?.classList.remove('selected');
+                    
+                    if (this.areAdjacent(this.selectedCell, { row, col })) {
+                        this.attemptSwap(this.selectedCell, { row, col });
+                    }
+                    
+                    this.selectedCell = null;
+                }
+            }
+
+            handleSwipe(startCell, endCell) {
+                if (this.gameOver) return;
+                
+                const startRow = parseInt(startCell.dataset.row);
+                const startCol = parseInt(startCell.dataset.col);
+                const endRow = parseInt(endCell.dataset.row);
+                const endCol = parseInt(endCell.dataset.col);
+                
+                if (this.areAdjacent({ row: startRow, col: startCol }, { row: endRow, col: endCol })) {
+                    this.attemptSwap({ row: startRow, col: startCol }, { row: endRow, col: endCol });
+                }
+            }
+
+            areAdjacent(cell1, cell2) {
+                const rowDiff = Math.abs(cell1.row - cell2.row);
+                const colDiff = Math.abs(cell1.col - cell2.col);
+                return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+            }
+
+            attemptSwap(cell1, cell2) {
+                if (this.isProcessing) return;
+                this.isProcessing = true;
+                
+                // Swap cells
+                const temp = this.grid[cell1.row][cell1.col];
+                this.grid[cell1.row][cell1.col] = this.grid[cell2.row][cell2.col];
+                this.grid[cell2.row][cell2.col] = temp;
+                
+                // Update bomb positions if needed
+                this.bombs.forEach(bomb => {
+                    if (bomb.row === cell1.row && bomb.col === cell1.col) {
+                        bomb.row = cell2.row;
+                        bomb.col = cell2.col;
+                    } else if (bomb.row === cell2.row && bomb.col === cell2.col) {
+                        bomb.row = cell1.row;
+                        bomb.col = cell1.col;
+                    }
+                });
+                
+                // Check if swap creates matches
+                if (this.hasMatches()) {
+                    this.moves++;
+                    this.updateMoves();
+                    this.decreaseBombCountdowns();
+                    this.audio.play('match');
+                    this.processMatches();
+                } else {
+                    // Revert swap
+                    const temp = this.grid[cell1.row][cell1.col];
+                    this.grid[cell1.row][cell1.col] = this.grid[cell2.row][cell2.col];
+                    this.grid[cell2.row][cell2.col] = temp;
+                    
+                    // Revert bomb positions
+                    this.bombs.forEach(bomb => {
+                        if (bomb.row === cell2.row && bomb.col === cell2.col) {
+                            bomb.row = cell1.row;
+                            bomb.col = cell1.col;
+                        } else if (bomb.row === cell1.row && bomb.col === cell1.col) {
+                            bomb.row = cell2.row;
+                            bomb.col = cell2.col;
                         }
                     });
+                    
+                    this.isProcessing = false;
+                }
+                
+                this.renderGrid();
+            }
+
+            hasMatches() {
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        if (this.checkMatch(row, col, this.grid[row][col])) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            processMatches() {
+                const matchedCells = this.findAllMatches();
+                if (matchedCells.length === 0) {
+                    this.checkBombExplosions();
+                    return;
+                }
+                
+                // Check if any bombs should be diffused due to neighboring matches
+                const bombsToDefuse = [];
+                this.bombs.forEach(bomb => {
+                    // Check if bomb has neighboring matches
+                    const neighbors = [
+                        { row: bomb.row - 1, col: bomb.col },
+                        { row: bomb.row + 1, col: bomb.col },
+                        { row: bomb.row, col: bomb.col - 1 },
+                        { row: bomb.row, col: bomb.col + 1 }
+                    ];
+                    
+                    const hasNeighboringMatch = neighbors.some(neighbor => 
+                        matchedCells.some(match => 
+                            match.row === neighbor.row && match.col === neighbor.col
+                        )
+                    );
+                    
+                    if (hasNeighboringMatch) {
+                        bombsToDefuse.push(bomb);
+                        matchedCells.push({ row: bomb.row, col: bomb.col }); // Add bomb to matched cells
+                    }
+                });
+                
+                // Animate matches
+                matchedCells.forEach(cell => {
+                    const element = document.querySelector(`[data-row="${cell.row}"][data-col="${cell.col}"]`);
+                    if (element) {
+                        element.classList.add('matching');
+                        this.showFloatingScore(element, 10);
+                    }
+                });
+                
+                // Remove matched cells and update score
+                setTimeout(() => {
+                    matchedCells.forEach(cell => {
+                        this.grid[cell.row][cell.col] = null;
+                    });
+                    
+                    // Remove diffused bombs and update counters
+                    bombsToDefuse.forEach(bomb => {
+                        this.bombs = this.bombs.filter(b => 
+                            !(b.row === bomb.row && b.col === bomb.col)
+                        );
+                        this.bombsDefused++;
+                        this.audio.play('defuse');
+                        
+                        // Check if we need to increase bomb limit and countdown
+                        if (this.bombsDefused % 5 === 0) {
+                            this.currentBombLimit = Math.min(this.currentBombLimit + 1, 3); // Max 3 bombs
+                            this.baseCountdown += 10;
+                        }
+                    });
+                    
+                    this.score += matchedCells.length * 10;
+                    this.updateScore();
+                    this.updateBombCount();
+                    
+                    this.applyGravity();
+                    this.fillEmptySpaces();
+                    this.renderGrid();
+                    
+                    // Check for chain reactions
+                    setTimeout(() => {
+                        if (this.hasMatches()) {
+                            this.audio.play('cascade');
+                            this.processMatches();
+                        } else {
+                            this.isProcessing = false;
+                            this.checkBombExplosions();
+                            
+                            // Spawn new bombs to reach the current limit
+                            const bombsNeeded = this.currentBombLimit - this.bombs.length;
+                            for (let i = 0; i < bombsNeeded; i++) {
+                                if (this.moves % 4 === 0 || this.bombs.length === 0) {
+                                    setTimeout(() => {
+                                        this.spawnBomb();
+                                        this.audio.play('bomb');
+                                    }, 500 + (i * 200));
+                                }
+                            }
+                        }
+                    }, 300);
+                }, 400);
+            }
+
+            findAllMatches() {
+                const matches = [];
+                const visited = new Set();
+                
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        const key = `${row}-${col}`;
+                        if (!visited.has(key) && this.grid[row][col] !== 'bomb') {
+                            const color = this.grid[row][col];
+                            const matchGroup = this.getMatchGroup(row, col, color, visited);
+                            if (matchGroup.length >= 3) {
+                                matches.push(...matchGroup);
+                            }
+                        }
+                    }
+                }
+                
+                return matches;
+            }
+
+            getMatchGroup(row, col, color, visited) {
+                const matches = [];
+                const toCheck = [{ row, col }];
+                
+                while (toCheck.length > 0) {
+                    const current = toCheck.pop();
+                    const key = `${current.row}-${current.col}`;
+                    
+                    if (visited.has(key) || 
+                        current.row < 0 || current.row >= this.gridSize ||
+                        current.col < 0 || current.col >= this.gridSize ||
+                        this.grid[current.row][current.col] !== color) {
+                        continue;
+                    }
+                    
+                    visited.add(key);
+                    matches.push(current);
+                    
+                    // Check adjacent cells
+                    toCheck.push(
+                        { row: current.row - 1, col: current.col },
+                        { row: current.row + 1, col: current.col },
+                        { row: current.row, col: current.col - 1 },
+                        { row: current.row, col: current.col + 1 }
+                    );
+                }
+                
+                return matches.length >= 3 ? matches : [];
+            }
+
+            applyGravity() {
+                for (let col = 0; col < this.gridSize; col++) {
+                    // Move all non-null cells down
+                    const column = [];
+                    for (let row = this.gridSize - 1; row >= 0; row--) {
+                        if (this.grid[row][col] !== null) {
+                            column.push(this.grid[row][col]);
+                        }
+                    }
+                    
+                    // Fill column from bottom up
+                    for (let row = this.gridSize - 1; row >= 0; row--) {
+                        if (column.length > 0) {
+                            this.grid[row][col] = column.shift();
+                        } else {
+                            this.grid[row][col] = null;
+                        }
+                    }
+                }
+                
+                // Update bomb positions after gravity
+                this.bombs.forEach(bomb => {
+                    for (let row = 0; row < this.gridSize; row++) {
+                        if (this.grid[row][bomb.col] === 'bomb') {
+                            bomb.row = row;
+                            break;
+                        }
+                    }
+                });
+            }
+
+            fillEmptySpaces() {
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        if (this.grid[row][col] === null) {
+                            this.grid[row][col] = this.getRandomColor();
+                        }
+                    }
                 }
             }
-            
-            if (allMatches.length > 0) {
-                // Animate matches
-                allMatches.forEach(match => {
-                    gameState.board[match.row][match.col].element.classList.add('matching');
+
+            decreaseBombCountdowns() {
+                this.bombs.forEach(bomb => {
+                    bomb.countdown--;
                 });
+                this.updateBombCount();
+            }
+
+            checkBombExplosions() {
+                const explodedBombs = this.bombs.filter(bomb => bomb.countdown <= 0);
                 
-                // Calculate score
-                const baseScore = allMatches.length * 10;
-                const comboScore = allMatches.length > 3 ? (allMatches.length - 3) * COMBO_MULTIPLIER : 0;
-                gameState.score += baseScore + comboScore;
-                
-                // Create particle effects
-                allMatches.forEach(match => {
-                    createParticleEffect(match.row, match.col);
-                });
-                
-                setTimeout(() => {
-                    // Remove matched gems
-                    allMatches.forEach(match => {
-                        gameState.board[match.row][match.col].element.style.opacity = '0';
+                if (explodedBombs.length > 0) {
+                    explodedBombs.forEach(bomb => {
+                        const element = document.querySelector(`[data-row="${bomb.row}"][data-col="${bomb.col}"]`);
+                        if (element) {
+                            element.classList.add('exploding');
+                        }
                     });
+                    
+                    this.audio.play('explosion');
                     
                     setTimeout(() => {
-                        dropGems(allMatches);
-                    }, 200);
-                }, 500);
-            } else {
-                gameState.isProcessing = false;
-                checkGameEnd();
-            }
-        }
-
-        function dropGems(removedGems) {
-            // Mark removed positions
-            removedGems.forEach(match => {
-                gameState.board[match.row][match.col] = null;
-            });
-            
-            // Drop existing gems
-            for (let col = 0; col < BOARD_SIZE; col++) {
-                let writePos = BOARD_SIZE - 1;
-                
-                for (let row = BOARD_SIZE - 1; row >= 0; row--) {
-                    if (gameState.board[row][col] !== null) {
-                        if (writePos !== row) {
-                            gameState.board[writePos][col] = gameState.board[row][col];
-                            gameState.board[writePos][col].row = writePos;
-                            gameState.board[writePos][col].element.dataset.row = writePos;
-                            gameState.board[row][col] = null;
-                        }
-                        writePos--;
-                    }
-                }
-                
-                // Fill empty spaces with new gems
-                for (let row = writePos; row >= 0; row--) {
-                    const newGem = createGem(row, col);
-                    gameState.board[row][col] = newGem;
-                    document.getElementById('gameBoard').appendChild(newGem.element);
-                    newGem.element.classList.add('falling');
+                        this.endGame('💥 Bomb Exploded! Game Over');
+                    }, 500);
                 }
             }
-            
-            // Update board layout
-            updateBoardLayout();
-            
-            setTimeout(() => {
-                // Check for new matches
-                processMatches();
-            }, 600);
-        }
 
-        function updateBoardLayout() {
-            const board = document.getElementById('gameBoard');
-            board.innerHTML = '';
-            
-            for (let row = 0; row < BOARD_SIZE; row++) {
-                for (let col = 0; col < BOARD_SIZE; col++) {
-                    if (gameState.board[row][col]) {
-                        board.appendChild(gameState.board[row][col].element);
-                    }
-                }
-            }
-        }
-
-        function createParticleEffect(row, col) {
-            const boardRect = document.getElementById('gameBoard').getBoundingClientRect();
-            const gemSize = boardRect.width / BOARD_SIZE;
-            
-            for (let i = 0; i < 6; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.width = '4px';
-                particle.style.height = '4px';
-                particle.style.background = '#ffe66d';
-                particle.style.left = (boardRect.left + col * gemSize + gemSize / 2) + 'px';
-                particle.style.top = (boardRect.top + row * gemSize + gemSize / 2) + 'px';
+            showFloatingScore(element, points) {
+                const rect = element.getBoundingClientRect();
+                const floatingScore = document.createElement('div');
+                floatingScore.className = 'floating-score';
+                floatingScore.textContent = `+${points}`;
+                floatingScore.style.left = `${rect.left + rect.width/2}px`;
+                floatingScore.style.top = `${rect.top}px`;
+                floatingScore.style.position = 'fixed';
                 
-                document.body.appendChild(particle);
-                
-                const angle = (i / 6) * Math.PI * 2;
-                const distance = 30 + Math.random() * 30;
-                const endX = Math.cos(angle) * distance;
-                const endY = Math.sin(angle) * distance;
-                
-                particle.animate([
-                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
-                    { transform: `translate(${endX}px, ${endY}px) scale(0)`, opacity: 0 }
-                ], {
-                    duration: 600,
-                    easing: 'ease-out'
-                }).onfinish = () => particle.remove();
-            }
-        }
-
-        // Power-ups
-        function usePowerUp(type) {
-            if (gameState.powerUps[type] <= 0 || gameState.isProcessing) return;
-            
-            gameState.activePowerUp = type;
-            document.body.style.cursor = 'crosshair';
-            
-            // Visual feedback
-            document.querySelectorAll('.power-up').forEach(btn => btn.style.opacity = '0.5');
-            document.querySelector(`.power-up.${type}`).style.opacity = '1';
-            document.querySelector(`.power-up.${type}`).style.transform = 'scale(1.1)';
-        }
-
-        function usePowerUpOnGem(row, col) {
-            if (!gameState.activePowerUp) return;
-            
-            gameState.powerUps[gameState.activePowerUp]--;
-            updatePowerUpCounts();
-            
-            switch (gameState.activePowerUp) {
-                case 'bomb':
-                    useBomb(row, col);
-                    break;
-                case 'shuffle':
-                    shuffleBoard();
-                    break;
-                case 'colorBomb':
-                    useColorBomb(row, col);
-                    break;
-            }
-            
-            // Reset power-up state
-            gameState.activePowerUp = null;
-            document.body.style.cursor = 'default';
-            document.querySelectorAll('.power-up').forEach(btn => {
-                btn.style.opacity = '1';
-                btn.style.transform = 'scale(1)';
-            });
-        }
-
-        function useBomb(row, col) {
-            const targets = [];
-            
-            for (let r = Math.max(0, row - 1); r <= Math.min(BOARD_SIZE - 1, row + 1); r++) {
-                for (let c = Math.max(0, col - 1); c <= Math.min(BOARD_SIZE - 1, col + 1); c++) {
-                    targets.push({row: r, col: c});
-                    gameState.board[r][c].element.classList.add('matching');
-                    createParticleEffect(r, c);
-                }
-            }
-            
-            gameState.score += targets.length * 20;
-            
-            setTimeout(() => {
-                targets.forEach(target => {
-                    gameState.board[target.row][target.col].element.style.opacity = '0';
-                });
+                document.body.appendChild(floatingScore);
                 
                 setTimeout(() => {
-                    dropGems(targets);
-                }, 200);
-            }, 500);
-        }
-
-        function shuffleBoard() {
-            const gems = [];
-            
-            // Collect all gem types
-            for (let row = 0; row < BOARD_SIZE; row++) {
-                for (let col = 0; col < BOARD_SIZE; col++) {
-                    gems.push(gameState.board[row][col].type);
-                }
-            }
-            
-            // Shuffle array
-            for (let i = gems.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [gems[i], gems[j]] = [gems[j], gems[i]];
-            }
-            
-            // Redistribute gems
-            let index = 0;
-            for (let row = 0; row < BOARD_SIZE; row++) {
-                for (let col = 0; col < BOARD_SIZE; col++) {
-                    gameState.board[row][col].type = gems[index++];
-                    updateGemVisual(row, col);
-                    gameState.board[row][col].element.style.animation = 'fall 0.5s ease-out';
-                }
-            }
-            
-            // Ensure no immediate matches after shuffle
-            setTimeout(() => {
-                removeInitialMatches();
-                gameState.isProcessing = false;
-            }, 500);
-        }
-
-        function useColorBomb(row, col) {
-            const targetType = gameState.board[row][col].type;
-            const targets = [];
-            
-            for (let r = 0; r < BOARD_SIZE; r++) {
-                for (let c = 0; c < BOARD_SIZE; c++) {
-                    if (gameState.board[r][c].type === targetType) {
-                        targets.push({row: r, col: c});
-                        gameState.board[r][c].element.classList.add('matching');
-                        createParticleEffect(r, c);
-                    }
-                }
-            }
-            
-            gameState.score += targets.length * 30;
-            
-            setTimeout(() => {
-                targets.forEach(target => {
-                    gameState.board[target.row][target.col].element.style.opacity = '0';
-                });
-                
-                setTimeout(() => {
-                    dropGems(targets);
-                }, 200);
-            }, 500);
-        }
-
-        function updatePowerUpCounts() {
-            document.getElementById('bombCount').textContent = gameState.powerUps.bomb;
-            document.getElementById('shuffleCount').textContent = gameState.powerUps.shuffle;
-            document.getElementById('colorBombCount').textContent = gameState.powerUps.colorBomb;
-        }
-
-        // Game Flow
-        function checkGameEnd() {
-            if (gameState.score >= gameState.target) {
-                // Level complete
-                setTimeout(() => {
-                    showGameOver(true);
-                }, 1000);
-            } else if (gameState.moves <= 0) {
-                // Game over
-                setTimeout(() => {
-                    showGameOver(false);
+                    document.body.removeChild(floatingScore);
                 }, 1000);
             }
-        }
 
-        function showGameOver(levelComplete) {
-            const gameOverScreen = document.getElementById('gameOverScreen');
-            const gameOverTitle = document.getElementById('gameOverTitle');
-            const finalScore = document.getElementById('finalScore');
-            
-            if (levelComplete) {
-                gameOverTitle.textContent = `Level ${gameState.level} Complete! 🎉`;
-                gameOverTitle.style.color = '#4ecdc4';
-                
-                // Award bonus power-ups
-                gameState.powerUps.bomb += 1;
-                gameState.powerUps.shuffle += 1;
-                if (gameState.level % 5 === 0) {
-                    gameState.powerUps.colorBomb += 1;
-                }
-            } else {
-                gameOverTitle.textContent = 'Game Over 😞';
-                gameOverTitle.style.color = '#ff6b6b';
+            updateScore() {
+                document.getElementById('score').textContent = this.score;
             }
-            
-            finalScore.textContent = gameState.score;
-            gameOverScreen.style.display = 'flex';
-            
-            // Save high score
-            saveHighScore();
-        }
 
-        function nextLevel() {
-            if (gameState.score >= gameState.target) {
-                gameState.level++;
-                gameState.target = Math.floor(gameState.target * 1.3);
-                gameState.moves = Math.max(25, 35 - gameState.level);
+            updateMoves() {
+                document.getElementById('moves').textContent = this.moves;
+            }
+
+            updateBombCount() {
+                document.getElementById('defused').textContent = this.bombsDefused;
+            }
+
+            endGame(message) {
+                this.gameOver = true;
                 
-                document.getElementById('gameOverScreen').style.display = 'none';
-                updatePowerUpCounts();
-                updateUI();
-                createBoard();
+                const gameOverDiv = document.createElement('div');
+                gameOverDiv.className = 'game-over';
+                gameOverDiv.innerHTML = `
+                    <div class="game-over-content">
+                        <h2>${message}</h2>
+                        <div class="final-score">Final Score: ${this.score}</div>
+                        <button class="play-again-btn" onclick="location.reload()">Play Again</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(gameOverDiv);
             }
         }
 
-        function restartGame() {
-            gameState.score = 0;
-            gameState.level = 1;
-            gameState.target = 1000;
-            gameState.moves = 30;
-            gameState.powerUps = { bomb: 3, shuffle: 2, colorBomb: 1 };
-            
-            document.getElementById('gameOverScreen').style.display = 'none';
-            updatePowerUpCounts();
-            updateUI();
-            createBoard();
-        }
-
-        function backToMenu() {
-            document.getElementById('gameOverScreen').style.display = 'none';
-            document.getElementById('gameUI').style.display = 'none';
-            document.getElementById('startScreen').style.display = 'flex';
-        }
-
-        // UI Updates
-        function updateUI() {
-            document.getElementById('score').textContent = gameState.score.toLocaleString();
-            document.getElementById('level').textContent = gameState.level;
-            document.getElementById('moves').textContent = gameState.moves;
-            document.getElementById('target').textContent = gameState.target.toLocaleString();
-            
-            const progress = Math.min(100, (gameState.score / gameState.target) * 100);
-            document.getElementById('progressBar').style.width = progress + '%';
-        }
-
-        // Menu Functions
-        function startGame() {
-            document.getElementById('startScreen').style.display = 'none';
-            document.getElementById('gameUI').style.display = 'flex';
-            initGame();
-        }
-
-        function showTutorial() {
-            alert(`🎮 HOW TO PLAY GEM CRUSH 🎮
-
-💎 Match 3 or more gems of the same color to score points
-🔄 Swap adjacent gems to create matches
-🎯 Reach the target score to complete each level
-📈 Each level increases in difficulty
-🚀 Use power-ups strategically:
-   💣 Bomb: Destroys 3x3 area
-   🔄 Shuffle: Rearranges the board
-   🌈 Color Bomb: Removes all gems of selected color
-
-💡 Tips:
-• Look for combo opportunities to score more points
-• Save power-ups for difficult situations
-• Plan your moves carefully - you have limited moves!
-
-Good luck! 🍀`);
-        }
-
-        function showHighScores() {
-            const highScores = getHighScores();
-            let message = '🏆 HIGH SCORES 🏆\n\n';
-            
-            if (highScores.length === 0) {
-                message += 'No high scores yet!\nPlay the game to set your first record!';
-            } else {
-                highScores.forEach((score, index) => {
-                    message += `${index + 1}. ${score.toLocaleString()}\n`;
-                });
-            }
-            
-            alert(message);
-        }
-
-        // Data Persistence (using memory instead of localStorage)
-        let gameData = {
-            highScores: [],
-            soundEnabled: true
-        };
-
-        function saveHighScore() {
-            gameData.highScores.push(gameState.score);
-            gameData.highScores.sort((a, b) => b - a);
-            
-            // Keep only top 10
-            if (gameData.highScores.length > 10) {
-                gameData.highScores.length = 10;
-            }
-        }
-
-        function getHighScores() {
-            return gameData.highScores || [];
-        }
-
-        function saveGameData() {
-            gameData.soundEnabled = gameState.soundEnabled;
-        }
-
-        function loadGameData() {
-            if (gameData.soundEnabled !== undefined) {
-                gameState.soundEnabled = gameData.soundEnabled;
-                updateSoundToggle();
-            }
-        }
-
-        // Sound Management
-        function toggleSound() {
-            gameState.soundEnabled = !gameState.soundEnabled;
-            updateSoundToggle();
-            saveGameData();
-        }
-
-        function updateSoundToggle() {
-            const soundToggle = document.getElementById('soundToggle');
-            soundToggle.textContent = gameState.soundEnabled ? '🔊' : '🔇';
-        }
-
-        function playSound(type) {
-            if (!gameState.soundEnabled) return;
-            
-            // Create audio context and play procedural sounds
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                switch (type) {
-                    case 'match':
-                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
-                        break;
-                    case 'powerup':
-                        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-                        oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.2);
-                        break;
-                    case 'levelComplete':
-                        oscillator.frequency.setValueAtTime(523, audioContext.currentTime);
-                        oscillator.frequency.setValueAtTime(659, audioContext.currentTime + 0.1);
-                        oscillator.frequency.setValueAtTime(784, audioContext.currentTime + 0.2);
-                        break;
-                }
-                
-                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.3);
-            } catch (e) {
-                // Audio not supported or blocked
-                console.warn('Audio playback failed:', e);
-            }
-        }
-
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            loadGameData();
-            updateSoundToggle();
+        // Start the game
+        window.addEventListener('DOMContentLoaded', () => {
+            new CandyCrushGame();
         });
-
-        // Prevent context menu on mobile
-        document.addEventListener('contextmenu', (e) => e.preventDefault());
-        
-        // Prevent zoom on double tap
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', (e) => {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                e.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
     </script>
 </body>
 </html>
