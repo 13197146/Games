@@ -377,33 +377,37 @@
     </section>
 
     <section class="section" id="games">
+	    <div id="game-container">
+    <iframe id="game-frame" width="800" height="600" style="border: none;"></iframe>
+</div>
+
         <div class="container">
             <h2 class="section-title fade-in">Discover The World of Gaming</h2>
             <p style="text-align: center; opacity: 0.8; max-width: 600px; margin: 0 auto;">
                 Immerse yourself in incredible worlds, challenge your skills, and create unforgettable memories with our collection of amazing games.
             </p>
             <div class="game-grid">
-                <a loadGame="main/assets/src" class="game-card fade-in">
+                <a onclick="loadGame('lanehooper')" class="game-card fade-in">
                     <h3>Lane Looper</h3>
                     <p>Explore distant galaxies and discover alien civilizations in this epic space odyssey filled with mystery and wonder.</p>
                 </a>
-                <a href="https://github.com/13197146/Games/tree/main/assets/src/" class="game-card fade-in">
+                <a onclick="loadGame('lanehooper')" class="game-card fade-in">
                     <h3>Lava Dash</h3>
                     <p>Embark on a magical journey through enchanted realms where dragons soar and ancient magic flows through every pixel.</p>
                 </a>
-                <a loadGame="main/assets/src" class="game-card fade-in">
+                <a onclick="loadGame('snakesprint')" class="game-card fade-in">
                     <h3>Snake Sprint</h3>
                     <p>Dive into the mysterious underwater world where hidden treasures and legendary sea creatures await your discovery.</p>
                 </a>
-		        <a loadGame="main/assets/src" class="game-card fade-in">
+		        <a onclick="loadGame('tailwind')" class="game-card fade-in">
                     <h3>Tail Wind</h3>
                     <p>Soar through the skies in this high-speed aerial adventure where precision and timing are everything.</p>
                 </a>
-		        <a loadGame="main/assets/src" class="game-card fade-in">
+		        <a onclick="loadGame('magnetball')" class="game-card fade-in">
                     <h3>Magnet Ball</h3>
                     <p>Master the forces of magnetism in this physics-based puzzle game that will challenge your mind and reflexes.</p>
                 </a>
-			<a loadGame="main/assets/src" class="game-card fade-in">
+			<a onclick="loadGame('gemcrush')" class="game-card fade-in">
                     <h3>Gem Crush</h3>
                     <p>Dive into the mysterious underwater world where hidden treasures and legendary sea creatures await your discovery.</p>
                 </a>
@@ -544,6 +548,30 @@
         }, { threshold: 0.5 });
 
         statsObserver.observe(statsSection);
+	    function loadGame(gameName) {
+    // Define the URL of each game
+    const gamePaths = {
+        'lanehooper': 'https://github.com/13197146/Games/tree/main/assets/src/lanehooper.html',
+        'lavadash': 'https://github.com/13197146/Games/tree/main/assets/src/lavadash.html',
+        'snakesprint': 'https://github.com/13197146/Games/tree/main/assets/src/snakesprint.html',
+        'tailwind': 'https://github.com/13197146/Games/tree/main/assets/src/tailwind.html',
+        'gemcrush': 'https://github.com/13197146/Games/tree/main/assets/src/gemcrush.html',
+        'magnetball': 'https://github.com/13197146/Games/tree/main/assets/src/magnetball.html',
+        // Add more games here as needed
+    };
+
+    // Get the iframe element
+    const iframe = document.getElementById('game-frame');
+
+    // Check if the game exists in the dictionary
+    if (gamePaths[gameName]) {
+        // Set the iframe src to the game path
+        iframe.src = gamePaths[gameName];
+    } else {
+        alert("Game not found!");
+    }
+}
+
 
         // Add floating particles effect
         function createParticle() {
