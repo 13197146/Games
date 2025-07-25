@@ -792,4 +792,78 @@
         }, { passive: true });
 
         document.addEventListener('touchmove', function(e) {
-            if (e.touches.length === 2)
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const currentDistance = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                
+                // Prevent pinch zoom
+                if (Math.abs(currentDistance - initialDistance) > 10) {
+                    e.preventDefault();
+                }
+            }
+        }, { passive: false });
+
+        // Add floating particles effect
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.style.position = 'fixed';
+            particle.style.width = Math.random() * 4 + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.background = ['#ff6b6b', '#4ecdc4', '#ffe66d'][Math.floor(Math.random() * 3)];
+            particle.style.borderRadius = '50%';
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.top = window.innerHeight + 'px';
+            particle.style.pointerEvents = 'none';
+            particle.style.opacity = '0.6';
+            particle.style.zIndex = '1';
+            
+            document.body.appendChild(particle);
+            
+            const animation = particle.animate([
+                { transform: 'translateY(0px)', opacity: 0.6 },
+                { transform: `translateY(-${window.innerHeight + 100}px)`, opacity: 0 }
+            ], {
+                duration: Math.random() * 3000 + 2000,
+                easing: 'linear'
+            });
+            
+            animation.onfinish = () => particle.remove();
+        }
+
+        // Create particles periodically
+        setInterval(createParticle, 500);
+
+        // ✅ Additional mobile optimization - prevent zoom on orientation change
+        window.addEventListener('orientationchange', function() {
+            setTimeout(function() {
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no');
+                }
+            }, 500);
+        });
+
+        // ✅ Prevent context menu on long press (mobile)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        }, false);
+
+        // ✅ Prevent text selection on mobile (except for readable content)
+        document.addEventListener('selectstart', function(e) {
+            const target = e.target;
+            const selectableElements = ['P', 'SPAN', 'DIV'];
+            const isSelectableDiv = target.tagName === 'DIV' && 
+                                  !target.classList.contains('game-card') && 
+                                  !target.classList.contains('feature-item');
+            
+            if (!selectableElements.includes(target.tagName) || 
+                (target.tagName === 'DIV' && !isSelectableDiv)) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
