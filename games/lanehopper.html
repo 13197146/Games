@@ -3,12 +3,56 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>Lane Hopper - Swipe + Keyboard</title>
+
+<!-- ✅ SEO Meta Tags -->
+<meta name="description" content="Play Lane Hopper - Free retro arcade racing game! Swipe or use arrow keys to dodge obstacles and beat your high score. No downloads required!" />
+<meta name="keywords" content="lane hopper, racing game, arcade game, free online game, retro game, mobile game, browser game" />
+<meta name="robots" content="index, follow" />
+<meta name="author" content="Games HAO‑F" />
+<link rel="canonical" href="https://2dretrogames.vercel.app/lane-hopper" />
+
+<!-- ✅ Open Graph -->
+<meta property="og:title" content="Lane Hopper - Free Retro Racing Game" />
+<meta property="og:description" content="Dodge obstacles and race to the top! Classic arcade-style lane switching game with smooth controls." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://2dretrogames.vercel.app/lane-hopper" />
+<meta property="og:image" content="https://2dretrogames.vercel.app/lane-hopper-preview.jpg" />
+
+<!-- ✅ Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Lane Hopper - Retro Racing Fun" />
+<meta name="twitter:description" content="Free browser racing game - swipe to dodge obstacles and set new records!" />
+<meta name="twitter:image" content="https://2dretrogames.vercel.app/lane-hopper-preview.jpg" />
+
+<!-- ✅ JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Game",
+  "name": "Lane Hopper",
+  "description": "Free retro arcade racing game where you dodge obstacles by switching lanes",
+  "url": "https://2dretrogames.vercel.app/lane-hopper",
+  "genre": "Racing, Arcade",
+  "gamePlatform": "Web Browser",
+  "operatingSystem": "Any",
+  "applicationCategory": "Game",
+  "author": {
+    "@type": "Organization",
+    "name": "Games HAO‑F"
+  }
+}
+</script>
+
+<!-- ✅ Vercel Speed Insights -->
+<script src="https://va.vercel-scripts.com/v1/speed-insights/script.js"></script>
+
+<title>Lane Hopper - Free Retro Racing Game | 2D Retro Games</title>
+
 <style>
   html, body {
     margin: 0;
     padding: 0;
-    background: #111;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: white;
     height: 100%;
@@ -19,108 +63,321 @@
     overflow: hidden;
   }
 
+  /* Back button styling */
+  #backBtn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    background: rgba(255, 107, 107, 0.9);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  }
+
+  #backBtn:hover {
+    background: rgba(255, 107, 107, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  }
+
+  #gameContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  #gameTitle {
+    font-size: 2.5rem;
+    font-weight: bold;
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #ffe66d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
   #game {
     position: relative;
     width: 100vw;
-    max-width: 310px;
-    height: 100vh;
-    max-height: 700px;
-    background: #222;
-    border: 3px solid #555;
-    border-radius: 12px;
+    max-width: 320px;
+    height: 70vh;
+    max-height: 600px;
+    min-height: 500px;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    border: 3px solid #444;
+    border-radius: 20px;
     margin: auto;
     overflow: hidden;
     touch-action: pan-y;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .lane-line {
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background: repeating-linear-gradient(
+      to bottom,
+      #555 0px,
+      #555 20px,
+      transparent 20px,
+      transparent 40px
+    );
+    animation: roadMove 0.5s linear infinite;
+  }
+
+  .lane-line:nth-child(1) { left: 33.33%; }
+  .lane-line:nth-child(2) { left: 66.66%; }
+
+  @keyframes roadMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 40px; }
   }
 
   .player-car, .obstacle {
     position: absolute;
-    width: 30px;
-    height: 50px;
-    border-radius: 8px;
+    width: 32px;
+    height: 55px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
   }
 
   .player-car {
-    bottom: 20px;
-    transition: left 0.15s ease;
+    bottom: 30px;
+    transition: left 0.2s ease;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    z-index: 5;
   }
 
   .obstacle {
     top: -70px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
   #scoreboard {
     position: absolute;
-    top: 10px;
+    top: 15px;
     left: 50%;
     transform: translateX(-50%);
     font-weight: bold;
-    font-size: 18px;
+    font-size: 20px;
     z-index: 2;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 8px 16px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
   }
 
   #bestscore {
     position: absolute;
-    top: 35px;
+    top: 50px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 12px;
+    font-size: 14px;
     color: #bbb;
     z-index: 2;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px 12px;
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
   }
 
   #taphint {
     position: absolute;
-    bottom: 10px;
+    bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 14px;
-    opacity: 0.5;
+    font-size: 12px;
+    opacity: 0.7;
     z-index: 2;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 8px 12px;
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+    max-width: 80%;
   }
 
   #playPauseBtn {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 15px;
+    right: 15px;
     z-index: 3;
-    background: #444;
+    background: rgba(255, 107, 107, 0.9);
     border: none;
     color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
+    padding: 8px 16px;
+    border-radius: 15px;
     font-weight: bold;
     cursor: pointer;
     user-select: none;
     font-size: 14px;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2);
   }
 
   #playPauseBtn:hover {
-    background: #666;
+    background: rgba(255, 107, 107, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+  }
+
+  #speedometer {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    z-index: 2;
+    font-size: 12px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 6px 10px;
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 480px) {
+    #gameTitle {
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
+    
+    #game {
+      max-width: 95vw;
+      height: 65vh;
+    }
+
+    #backBtn {
+      top: 15px;
+      left: 15px;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+  }
+
+  /* Game over overlay */
+  #gameOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+
+  #gameOverlay.show {
+    display: flex;
+  }
+
+  #gameOverlay h2 {
+    color: #ff6b6b;
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+
+  #gameOverlay p {
+    opacity: 0.8;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  #restartBtn {
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+  }
+
+  #restartBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+  }
+
+  /* Particle effects */
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #4ecdc4;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
   }
 </style>
 </head>
 <body>
-<div id="game" tabindex="0" aria-label="Lane Hopper game">
-  <div id="scoreboard">Score: 0</div>
-  <div id="bestscore">Best: 0</div>
-  <div id="taphint">Swipe left/right or use ← → keys to switch lanes</div>
-  <div id="player" class="player-car" aria-label="Player car"></div>
-  <button id="playPauseBtn" aria-label="Pause game" title="Pause game">Pause</button>
+
+<a href="/" id="backBtn" aria-label="Back to home">
+  ← Back to Games
+</a>
+
+<div id="gameContainer">
+  <h1 id="gameTitle">Lane Hopper</h1>
+  
+  <div id="game" tabindex="0" aria-label="Lane Hopper game">
+    <div class="lane-line"></div>
+    <div class="lane-line"></div>
+    
+    <div id="scoreboard">Score: 0</div>
+    <div id="bestscore">Best: 0</div>
+    <div id="speedometer">Speed: 1.6x</div>
+    <div id="taphint">Swipe left/right or use ← → keys to switch lanes</div>
+    <div id="player" class="player-car" aria-label="Player car"></div>
+    <button id="playPauseBtn" aria-label="Pause game" title="Pause game">Pause</button>
+
+    <div id="gameOverlay">
+      <h2>Game Over!</h2>
+      <p>You scored <span id="finalScore">0</span> points</p>
+      <button id="restartBtn">Play Again</button>
+    </div>
+  </div>
 </div>
 
 <script>
 (() => {
+  // Initialize Vercel Speed Insights
+  window.si = window.si || function (...args) { (window.siq = window.siq || []).push(args); };
+
   const game = document.getElementById('game');
   const player = document.getElementById('player');
   const scoreboard = document.getElementById('scoreboard');
   const bestscoreElem = document.getElementById('bestscore');
   const taphint = document.getElementById('taphint');
   const playPauseBtn = document.getElementById('playPauseBtn');
+  const speedometer = document.getElementById('speedometer');
+  const gameOverlay = document.getElementById('gameOverlay');
+  const finalScore = document.getElementById('finalScore');
+  const restartBtn = document.getElementById('restartBtn');
 
-  const laneWidth = 100;
-  const carWidth = 30;
+  const laneWidth = game.clientWidth / 3;
+  const carWidth = 32;
   const laneOffset = (laneWidth - carWidth) / 2;
 
   // 3 lanes: left(0), center(1), right(2)
@@ -149,7 +406,33 @@
 
   function setPlayerSkin(index) {
     player.style.backgroundColor = carColors[index];
-    player.style.boxShadow = `0 0 10px ${carColors[index]}`;
+    player.style.boxShadow = `0 0 15px ${carColors[index]}`;
+  }
+
+  function createParticles(x, y) {
+    for (let i = 0; i < 5; i++) {
+      const particle = document.createElement('div');
+      particle.classList.add('particle');
+      particle.style.left = x + 'px';
+      particle.style.top = y + 'px';
+      particle.style.background = carColors[Math.floor(Math.random() * carColors.length)];
+      
+      game.appendChild(particle);
+      
+      const angle = (Math.PI * 2 * i) / 5;
+      const velocity = 50 + Math.random() * 50;
+      
+      particle.animate([
+        { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+        { 
+          transform: `translate(${Math.cos(angle) * velocity}px, ${Math.sin(angle) * velocity}px) scale(0)`, 
+          opacity: 0 
+        }
+      ], {
+        duration: 800,
+        easing: 'ease-out'
+      }).onfinish = () => particle.remove();
+    }
   }
 
   function createObstacle() {
@@ -159,8 +442,9 @@
     const isCar = Math.random() < 0.7;
     if (isCar) {
       obstacle.dataset.type = 'car';
-      obstacle.style.backgroundColor = carColors[(currentSkinIndex + 3) % carColors.length];
-      obstacle.style.boxShadow = `0 0 10px ${carColors[(currentSkinIndex + 3) % carColors.length]}`;
+      const colorIndex = (currentSkinIndex + Math.floor(Math.random() * 3) + 1) % carColors.length;
+      obstacle.style.backgroundColor = carColors[colorIndex];
+      obstacle.style.boxShadow = `0 0 10px ${carColors[colorIndex]}`;
     } else {
       obstacle.dataset.type = 'barrier';
       obstacle.style.background = 'repeating-linear-gradient(45deg, #666, #666 8px, #999 8px, #999 16px)';
@@ -197,11 +481,13 @@
         if (score % 10 === 0) {
           currentSkinIndex = (currentSkinIndex + 1) % carColors.length;
           setPlayerSkin(currentSkinIndex);
+          createParticles(lanes[playerLane] + 16, game.clientHeight - 60);
         }
 
         if (score % 5 === 0 && speed < maxSpeed) {
           speed = Math.min(maxSpeed, speed + 0.11);
           spawnInterval = Math.max(700, spawnInterval - 70);
+          speedometer.textContent = `Speed: ${speed.toFixed(1)}x`;
         }
       }
     }
@@ -211,13 +497,20 @@
     const playerRect = player.getBoundingClientRect();
     for (const obs of obstacles) {
       const obsRect = obs.getBoundingClientRect();
-      const overlap = !(playerRect.right < obsRect.left ||
-                        playerRect.left > obsRect.right ||
-                        playerRect.bottom < obsRect.top ||
-                        playerRect.top > obsRect.bottom);
+      const overlap = !(playerRect.right < obsRect.left + 5 ||
+                        playerRect.left > obsRect.right - 5 ||
+                        playerRect.bottom < obsRect.top + 5 ||
+                        playerRect.top > obsRect.bottom - 5);
       if (overlap) return true;
     }
     return false;
+  }
+
+  function endGame() {
+    gameOver = true;
+    finalScore.textContent = score;
+    gameOverlay.classList.add('show');
+    createParticles(lanes[playerLane] + 16, game.clientHeight - 60);
   }
 
   function resetGame() {
@@ -231,12 +524,14 @@
     playerLane = 1;
     player.style.left = lanes[playerLane] + 'px';
     scoreboard.textContent = 'Score: 0';
+    speedometer.textContent = 'Speed: 1.6x';
     taphint.textContent = 'Swipe left/right or use ← → keys to switch lanes';
-    taphint.style.opacity = 0.5;
+    taphint.style.opacity = 0.7;
     gameOver = false;
     paused = false;
     playPauseBtn.textContent = 'Pause';
     playPauseBtn.setAttribute('aria-label', 'Pause game');
+    gameOverlay.classList.remove('show');
     lastSpawn = 0;
     lastFrameTime = 0;
     requestAnimationFrame(gameLoop);
@@ -256,9 +551,7 @@
     updateObstacles(delta);
 
     if (checkCollision()) {
-      gameOver = true;
-      taphint.textContent = 'Game Over! Swipe or press key to restart';
-      taphint.style.opacity = 1;
+      endGame();
       return;
     }
 
@@ -271,27 +564,26 @@
     if (playerLane > 0) {
       playerLane--;
       player.style.left = lanes[playerLane] + 'px';
-      taphint.style.opacity = 0;
+      taphint.style.opacity = 0.3;
     }
   }
 
   // Move player lane right, bounded
   function moveLaneRight() {
     if (gameOver || paused) return;
-    if (playerLane < lanes.length -1) {
+    if (playerLane < lanes.length - 1) {
       playerLane++;
       player.style.left = lanes[playerLane] + 'px';
-      taphint.style.opacity = 0;
+      taphint.style.opacity = 0.3;
     }
   }
 
   // Handle keyboard arrows
   function onKeyDown(e) {
-    if (gameOver) {
-      resetGame();
+    if (gameOver && e.key !== 'Escape') {
       return;
     }
-    if (paused) return;
+    if (paused && e.key !== ' ' && e.key !== 'Escape') return;
 
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
@@ -299,6 +591,16 @@
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
       moveLaneRight();
+    } else if (e.key === ' ') {
+      e.preventDefault();
+      togglePause();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      if (gameOver) {
+        resetGame();
+      } else {
+        togglePause();
+      }
     }
   }
 
@@ -328,10 +630,6 @@
   }
 
   function onTouchEnd(e) {
-    if (gameOver) {
-      resetGame();
-      return;
-    }
     if (touchStartX === null) return;
 
     if (e.changedTouches && e.changedTouches.length === 1) {
@@ -359,26 +657,23 @@
       requestAnimationFrame(gameLoop);
       playPauseBtn.textContent = 'Pause';
       playPauseBtn.setAttribute('aria-label', 'Pause game');
-      taphint.style.opacity = 0.5;
+      taphint.style.opacity = 0.7;
     } else {
       playPauseBtn.textContent = 'Play';
       playPauseBtn.setAttribute('aria-label', 'Play game');
       taphint.style.opacity = 1;
-      taphint.textContent = 'Paused';
+      taphint.textContent = 'Paused - Press Space or tap Play';
     }
   }
 
+  // Event listeners
   playPauseBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // prevent triggering lane move on click
+    e.stopPropagation();
     togglePause();
   });
 
-  // Restart game on click/tap if game over
-  game.addEventListener('click', () => {
-    if (gameOver) resetGame();
-  });
+  restartBtn.addEventListener('click', resetGame);
 
-  // Keyboard
   // Keyboard input event
   document.addEventListener('keydown', onKeyDown);
 
@@ -387,12 +682,35 @@
   game.addEventListener('touchmove', onTouchMove, { passive: false });
   game.addEventListener('touchend', onTouchEnd);
 
+  // Prevent right-click context menu on game
+  game.addEventListener('contextmenu', (e) => e.preventDefault());
+
   // Initial setup
   bestScore = parseInt(localStorage.getItem('laneHopperBest')) || 0;
   bestscoreElem.textContent = 'Best: ' + bestScore;
   player.style.left = lanes[playerLane] + 'px';
+  speedometer.textContent = `Speed: ${speed.toFixed(1)}x`;
   setPlayerSkin(currentSkinIndex);
+  
+  // Start game
   requestAnimationFrame(gameLoop);
+
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    const newLaneWidth = game.clientWidth / 3;
+    const newLaneOffset = (newLaneWidth - carWidth) / 2;
+    
+    lanes[0] = newLaneOffset;
+    lanes[1] = newLaneWidth + newLaneOffset;
+    lanes[2] = 2 * newLaneWidth + newLaneOffset;
+    
+    player.style.left = lanes[playerLane] + 'px';
+    
+    obstacles.forEach(obs => {
+      obs.style.left = lanes[obs.lane] + 'px';
+    });
+  });
+
 })();
 </script>
 </body>
