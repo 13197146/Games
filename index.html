@@ -146,57 +146,6 @@
             touch-action: manipulation;
         }
 
-        /* Game Container - Hidden by default */
-        .game-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 2000;
-            display: none;
-            flex-direction: column;
-        }
-
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-            background: rgba(15, 15, 35, 0.9);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .game-title {
-            font-size: 1.5rem;
-            color: #ff6b6b;
-        }
-
-        .close-game {
-            background: #ff6b6b;
-            border: none;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background 0.3s;
-            /* ✅ Prevent double-tap zoom on close button */
-            touch-action: manipulation;
-        }
-
-        .close-game:hover {
-            background: #ff5252;
-        }
-
-        .game-iframe {
-            flex: 1;
-            width: 100%;
-            border: none;
-            background: white;
-        }
-
         /* Hero Section */
         .hero {
             height: 100vh;
@@ -340,6 +289,8 @@
             transition: all 0.3s;
             position: relative;
             z-index: 2;
+            text-decoration: none;
+            display: inline-block;
             /* ✅ Prevent double-tap zoom on play buttons */
             touch-action: manipulation;
         }
@@ -411,29 +362,29 @@
             color: white;
         }
 
-        /* Loading spinner */
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.2rem;
-            color: #ff6b6b;
+        /* Back to home button for game pages */
+        .back-home {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 107, 107, 0.9);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1000;
+            text-decoration: none;
+            display: none;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .spinner {
-            border: 4px solid rgba(255, 107, 107, 0.3);
-            border-radius: 50%;
-            border-top: 4px solid #ff6b6b;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .back-home:hover {
+            background: rgba(255, 107, 107, 1);
+            transform: translateY(-2px);
         }
 
         /* Responsive */
@@ -452,10 +403,6 @@
             
             .section {
                 padding: 50px 0;
-            }
-
-            .game-header {
-                padding: 1rem;
             }
 
             /* ✅ Better mobile game grid */
@@ -483,6 +430,8 @@
     </style>
 </head>
 <body>
+    <a href="/" class="back-home" id="backHome">🏠 Back to Home</a>
+
     <header>
         <nav class="container">
             <div class="logo" onclick="goHome()">🎮 2D Retro Games</div>
@@ -495,19 +444,6 @@
             <button class="menu-toggle">☰</button>
         </nav>
     </header>
-
-    <!-- Game Container (Hidden) -->
-    <div class="game-container" id="gameContainer">
-        <div class="game-header">
-            <div class="game-title" id="currentGameTitle">Loading Game...</div>
-            <button class="close-game" onclick="closeGame()">✕ Close Game</button>
-        </div>
-        <div class="loading" id="gameLoading">
-            <div class="spinner"></div>
-            Loading game...
-        </div>
-        <iframe class="game-iframe" id="gameIframe" style="display: none;"></iframe>
-    </div>
 
     <section class="hero" id="home">
         <div class="hero-content">
@@ -527,32 +463,32 @@
                 <div class="game-card fade-in">
                     <h3>🏃 Lane Looper</h3>
                     <p>Navigate through challenging lanes in this fast-paced endless runner. Test your reflexes and see how far you can go!</p>
-                    <button class="play-button" onclick="playGame('lanelooper', 'Lane Looper')">🎮 Play Now</button>
+                    <a href="./games/lanehopper.html" class="play-button">🎮 Play Now</a>
                 </div>
                 <div class="game-card fade-in">
                     <h3>🔥 Lava Dash</h3>
                     <p>Jump and dash through molten landscapes in this thrilling platformer adventure. Can you escape the rising lava?</p>
-                    <button class="play-button" onclick="playGame('lavadash', 'Lava Dash')">🎮 Play Now</button>
+                    <a href="./games/lavadash.html" class="play-button">🎮 Play Now</a>
                 </div>
                 <div class="game-card fade-in">
                     <h3>🐍 Snake Sprint</h3>
                     <p>A modern twist on the classic snake game with power-ups, speed boosts, and challenging obstacles.</p>
-                    <button class="play-button" onclick="playGame('snakesprint', 'Snake Sprint')">🎮 Play Now</button>
+                    <a href="./games/snakesprint.html" class="play-button">🎮 Play Now</a>
                 </div>
                 <div class="game-card fade-in">
                     <h3>💨 Tail Wind</h3>
                     <p>Soar through the skies in this high-speed aerial adventure where precision and timing are everything.</p>
-                    <button class="play-button" onclick="playGame('tailwind', 'Tail Wind')">🎮 Play Now</button>
+                    <a href="./games/tailwind.html" class="play-button">🎮 Play Now</a>
                 </div>
                 <div class="game-card fade-in">
                     <h3>🧲 Magnet Ball</h3>
                     <p>Master the forces of magnetism in this physics-based puzzle game that will challenge your mind and reflexes.</p>
-                    <button class="play-button" onclick="playGame('magnetball', 'Magnet Ball')">🎮 Play Now</button>
+                    <a href="./games/magnetball.html" class="play-button">🎮 Play Now</a>
                 </div>
                 <div class="game-card fade-in">
                     <h3>💎 Gem Crush</h3>
                     <p>Match colorful gems in this addictive puzzle game. Create combos, use power-ups, and clear the board!</p>
-                    <button class="play-button" onclick="playGame('gemcrush', 'Gem Crush')">🎮 Play Now</button>
+                    <a href="./games/gemcrush.html" class="play-button">🎮 Play Now</a>
                 </div>
             </div>
         </div>
@@ -591,10 +527,12 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h4>🎮 Games</h4>
-                    <a onclick="playGame('lanelooper', 'Lane Looper')">Lane Looper</a>
-                    <a onclick="playGame('lavadash', 'Lava Dash')">Lava Dash</a>
-                    <a onclick="playGame('snakesprint', 'Snake Sprint')">Snake Sprint</a>
-                    <a onclick="playGame('gemcrush', 'Gem Crush')">Gem Crush</a>
+                    <a href="./games/tailwind.html">Endless Runner</a>
+                    <a href="./games/lanehopper.html">Lane Looper</a>
+                    <a href="./games/lavadash.html">Lava Dash</a>
+                    <a href="./games/snakesprint.html">Snake Sprint</a>
+                    <a href="./games/gemcrush.html">Gem Crush</a>
+                    <a href="./games/magnetball.html">Magnet Ball</a>
                 </div>
                 <div class="footer-section">
                     <h4>💬 Community</h4>
@@ -624,101 +562,39 @@
     </footer>
 
     <script>
-        // Game URLs - You need to replace these with your actual hosted game URLs
-        const gameUrls = {
-            'lanelooper': './games/lanehopper.html',  // Replace with actual URL
-            'lavadash': './games/lavadash.html',      // Replace with actual URL
-            'snakesprint': './games/snakesprint.html', // Replace with actual URL
-            'tailwind': './games/tailwind.html',       // Replace with actual URL
-            'magnetball': './games/magnetball.html',   // Replace with actual URL
-            'gemcrush': './games/gemcrush.html'        // Replace with actual URL
-        };
-
-        // Play game function
-        function playGame(gameId, gameTitle) {
-            const gameContainer = document.getElementById('gameContainer');
-            const gameIframe = document.getElementById('gameIframe');
-            const gameLoading = document.getElementById('gameLoading');
-            const currentGameTitle = document.getElementById('currentGameTitle');
-
-            // Show game container
-            gameContainer.style.display = 'flex';
-            gameLoading.style.display = 'block';
-            gameIframe.style.display = 'none';
-            currentGameTitle.textContent = gameTitle;
-
-            // Check if we have a URL for this game
-            if (gameUrls[gameId]) {
-                // Load the game
-                gameIframe.src = gameUrls[gameId];
-                
-                // Hide loading when iframe loads
-                gameIframe.onload = function() {
-                    gameLoading.style.display = 'none';
-                    gameIframe.style.display = 'block';
-                };
-            } else {
-                // Show demo message if game URL not available
-                gameLoading.innerHTML = `
-                    <div style="text-align: center;">
-                        <h3>🎮 ${gameTitle} Demo</h3>
-                        <p>This game is currently being prepared for launch!</p>
-                        <p style="margin-top: 1rem; opacity: 0.8;">
-                            To make this work with your games:
-                        </p>
-                        <ol style="text-align: left; margin: 1rem 0; opacity: 0.7;">
-                            <li>Upload your game HTML files to your server</li>
-                            <li>Update the gameUrls object with correct paths</li>
-                            <li>Your games will load instantly!</li>
-                        </ol>
-                        <button onclick="closeGame()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #ff6b6b; border: none; color: white; border-radius: 5px; cursor: pointer; touch-action: manipulation;">
-                            ← Back to Games
-                        </button>
-                    </div>
-                `;
-            }
-
-            // Prevent body scroll when game is open
-            document.body.style.overflow = 'hidden';
+        // Check if this is a game page by looking at the URL
+        function isGamePage() {
+            return window.location.pathname.includes('/games/') || 
+                   window.location.pathname.endsWith('.html') && 
+                   window.location.pathname !== '/' && 
+                   window.location.pathname !== '/index.html';
         }
 
-        // Close game function
-        function closeGame() {
-            const gameContainer = document.getElementById('gameContainer');
-            const gameIframe = document.getElementById('gameIframe');
-            
-            gameContainer.style.display = 'none';
-            gameIframe.src = ''; // Stop the game
-            document.body.style.overflow = 'auto'; // Restore body scroll
+        // Show back button on game pages
+        if (isGamePage()) {
+            document.getElementById('backHome').style.display = 'block';
+            document.querySelector('header').style.display = 'none';
+            document.querySelector('.hero').style.display = 'none';
+            document.querySelector('#games').style.display = 'none';
+            document.querySelector('#features').style.display = 'none';
+            document.querySelector('footer').style.display = 'none';
         }
 
         // Scroll to section
         function scrollToSection(sectionId) {
-            document.getElementById(sectionId).scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
         }
 
         // Go home function
         function goHome() {
-            closeGame();
-            scrollToSection('home');
+            window.location.href = '/';
         }
-
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
 
         // Intersection Observer for fade-in animations
         const observerOptions = {
@@ -737,13 +613,6 @@
         // Observe all fade-in elements
         document.querySelectorAll('.fade-in').forEach(el => {
             observer.observe(el);
-        });
-
-        // Close game with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeGame();
-            }
         });
 
         // ✅ Improved double-tap prevention for mobile
@@ -778,34 +647,6 @@
             e.preventDefault();
         }, false);
 
-        // ✅ Better touch handling for mobile devices
-        let initialDistance = 0;
-        let initialScale = 1;
-
-        document.addEventListener('touchstart', function(e) {
-            if (e.touches.length === 2) {
-                initialDistance = Math.hypot(
-                    e.touches[0].pageX - e.touches[1].pageX,
-                    e.touches[0].pageY - e.touches[1].pageY
-                );
-            }
-        }, { passive: true });
-
-        document.addEventListener('touchmove', function(e) {
-            if (e.touches.length === 2) {
-                e.preventDefault();
-                const currentDistance = Math.hypot(
-                    e.touches[0].pageX - e.touches[1].pageX,
-                    e.touches[0].pageY - e.touches[1].pageY
-                );
-                
-                // Prevent pinch zoom
-                if (Math.abs(currentDistance - initialDistance) > 10) {
-                    e.preventDefault();
-                }
-            }
-        }, { passive: false });
-
         // Add floating particles effect
         function createParticle() {
             const particle = document.createElement('div');
@@ -833,8 +674,10 @@
             animation.onfinish = () => particle.remove();
         }
 
-        // Create particles periodically
-        setInterval(createParticle, 500);
+        // Create particles periodically (only on home page)
+        if (!isGamePage()) {
+            setInterval(createParticle, 500);
+        }
 
         // ✅ Additional mobile optimization - prevent zoom on orientation change
         window.addEventListener('orientationchange', function() {
