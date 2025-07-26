@@ -1,20 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset 
-    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
     <url>
         <loc>https://2dretrogames.vercel.app/</loc>
-        <loc>https://2dretrogames.vercel.app/games/lanehopper.html</loc>
-        <loc>https://2dretrogames.vercel.app/games/gemcrush.html</loc>
-        <loc>https://2dretrogames.vercel.app/games/lavadash.html</loc>
-        <loc>https://2dretrogames.vercel.app/games/snakesprint.html</loc>
-        <loc>https://2dretrogames.vercel.app/games/magnetball.html</loc>
-        <loc>https://2dretrogames.vercel.app/games/tailwind.html</loc>
-        <loc>https://2dretrogames.vercel.app/games/sitemap.xml</loc>
-        <loc>https://2dretrogames.vercel.app/games/robots.txt</loc>
         <changefreq>monthly</changefreq>
         <priority>1.0</priority>
     </url>
 
-   
+    <url>
+        <loc>https://2dretrogames.vercel.app/games/lanehopper.html</loc>
+        <changefreq>monthly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <url>
+        <loc>https://2dretrogames.vercel.app/games/gemcrush.html</loc>
+        <changefreq>monthly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <url>
+        <loc>https://2dretrogames.vercel.app/games/lavadash.html</loc>
+        <changefreq>monthly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <url>
+        <loc>https://2dretrogames.vercel.app/games/snakesprint.html</loc>
+        <changefreq>monthly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <url>
+        <loc>https://2dretrogames.vercel.app/games/magnetball.html</loc>
+        <changefreq>monthly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <url>
+        <loc>https://2dretrogames.vercel.app/games/tailwind.html</loc>
+        <changefreq>monthly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <url>
+        <loc>https://2dretrogames.vercel.app/games/sitemap.xml</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://2dretrogames.vercel.app/games/robots.txt</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
 </urlset>
