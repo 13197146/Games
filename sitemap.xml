@@ -4,6 +4,14 @@
     
     <url>
         <loc>https://2dretrogames.vercel.app/</loc>
+        <loc>https://2dretrogames.vercel.app/games/lanehopper.html</loc>
+        <loc>https://2dretrogames.vercel.app/games/gemcrush.html</loc>
+        <loc>https://2dretrogames.vercel.app/games/lavadash.html</loc>
+        <loc>https://2dretrogames.vercel.app/games/snakesprint.html</loc>
+        <loc>https://2dretrogames.vercel.app/games/magnetball.html</loc>
+        <loc>https://2dretrogames.vercel.app/games/tailwind.html</loc>
+        <loc>https://2dretrogames.vercel.app/games/sitemap.xml</loc>
+        <loc>https://2dretrogames.vercel.app/games/robots.txt</loc>
         <changefreq>monthly</changefreq>
         <priority>1.0</priority>
     </url>
