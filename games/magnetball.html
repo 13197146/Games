@@ -1,248 +1,873 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Magnet Ball 360°</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: #111;
-    }
-    canvas {
-      display: block;
-    }
-    #score {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      color: white;
-      font-family: sans-serif;
-      font-size: 18px;
-      z-index: 1;
-    }
-    #gameOver {
-      display: none;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: white;
-      font-size: 32px;
-      font-family: sans-serif;
-      text-align: center;
-      z-index: 2;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magnet Ball 360° - Physics Arcade Game</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            border-radius: 10px;
+            box-shadow: 0 0 50px rgba(255, 68, 68, 0.3);
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .top-hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: auto;
+        }
+
+        .score-container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 25px;
+            border: 2px solid rgba(255, 68, 68, 0.5);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .score-label {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff4444;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+        }
+
+        .high-score {
+            color: #ffdd44;
+            text-shadow: 0 0 10px rgba(255, 221, 68, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            pointer-events: auto;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 30px;
+            border-radius: 25px;
+            border: 2px solid rgba(51, 204, 255, 0.5);
+            backdrop-filter: blur(10px);
+            animation: pulse 2s ease-in-out infinite;
+            transition: opacity 0.5s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
+        }
+
+        .instruction-text {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #33ccff;
+        }
+
+        .instruction-sub {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .game-over-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-over-content {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 68, 68, 0.5);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: gameOverAppear 0.5s ease-out;
+        }
+
+        @keyframes gameOverAppear {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .game-over-title {
+            font-size: 3rem;
+            color: #ff4444;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255, 68, 68, 0.8);
+        }
+
+        .game-over-score {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: #ffdd44;
+        }
+
+        .restart-btn {
+            background: linear-gradient(45deg, #ff4444, #ff6666);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(255, 68, 68, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            pointer-events: auto;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 68, 68, 0.6);
+        }
+
+        .pause-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            backdrop-filter: blur(5px);
+        }
+
+        .pause-content {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .pause-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #ffdd44;
+        }
+
+        .speed-indicator {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 221, 68, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .speed-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .speed-bar {
+            width: 100px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .speed-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffdd44, #ff4444);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        @media (max-width: 768px) {
+            .top-hud {
+                flex-direction: column;
+                gap: 15px;
+                top: 10px;
+                left: 10px;
+                right: 10px;
+            }
+
+            .score-container {
+                padding: 10px 20px;
+            }
+
+            .score-value {
+                font-size: 20px;
+            }
+
+            .instructions {
+                bottom: 20px;
+                left: 10px;
+                right: 10px;
+                transform: none;
+                padding: 10px 20px;
+            }
+
+            .instruction-text {
+                font-size: 14px;
+            }
+
+            .game-over-content {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+
+            .game-over-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="score">Score: 0</div>
-  <div id="gameOver">Game Over<br>Restarting...</div>
-  <canvas id="gameCanvas"></canvas>
+    <canvas id="gameCanvas"></canvas>
 
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    const hitSound = new Audio("https://freesound.org/data/previews/341/341695_5260877-lq.mp3");
-    hitSound.volume = 0.4;
+    <div class="ui-overlay">
+        <div class="top-hud">
+            <div class="score-container">
+                <div class="score-label">CURRENT SCORE</div>
+                <div class="score-value" id="currentScore">0</div>
+            </div>
+            <div class="score-container">
+                <div class="score-label">HIGH SCORE</div>
+                <div class="score-value high-score" id="highScore">0</div>
+            </div>
+            <div class="controls">
+                <button class="control-btn" id="pauseBtn" title="Pause Game">⏸️</button>
+                <button class="control-btn" id="soundBtn" title="Toggle Sound">🔊</button>
+                <button class="control-btn" id="restartBtn2" title="Restart">🔄</button>
+            </div>
+        </div>
 
-    let width = canvas.width = window.innerWidth;
-    let height = canvas.height = window.innerHeight;
+        <div class="speed-indicator">
+            <div class="speed-label">SPEED</div>
+            <div class="speed-bar">
+                <div class="speed-fill" id="speedFill"></div>
+            </div>
+        </div>
 
-    const scoreDisplay = document.getElementById("score");
-    const gameOverDisplay = document.getElementById("gameOver");
+        <div class="instructions" id="instructions">
+            <div class="instruction-text">🎯 Click/Tap to Release Ball</div>
+            <div class="instruction-sub">Hit the red magnet to score points!</div>
+        </div>
+    </div>
 
-    window.addEventListener("resize", () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    });
+    <div class="pause-overlay" id="pauseOverlay">
+        <div class="pause-content">
+            <div class="pause-title">⏸️ GAME PAUSED</div>
+            <div>Press ESC or tap pause button to resume</div>
+        </div>
+    </div>
 
-    let score = 0;
-    let highScore = localStorage.getItem("highScore") || 0;
-    let currentSpeed = 0.02;
-    const maxSpeed = 0.034;
-    const gravity = 0.35;
-    let paused = false;
+    <div class="game-over-overlay" id="gameOverOverlay">
+        <div class="game-over-content">
+            <div class="game-over-title">🎮 GAME OVER</div>
+            <div class="game-over-score" id="finalScore">Final Score: 0</div>
+            <button class="restart-btn" id="restartBtn">🔄 PLAY AGAIN</button>
+        </div>
+    </div>
 
-    class Magnet {
-      constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.radius = 14;
-      }
+    <script>
+        // Game Setup
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
 
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = "#ff4444";
-        ctx.fill();
-      }
-    }
+        // UI Elements
+        const currentScoreEl = document.getElementById("currentScore");
+        const highScoreEl = document.getElementById("highScore");
+        const speedFillEl = document.getElementById("speedFill");
+        const gameOverOverlay = document.getElementById("gameOverOverlay");
+        const finalScoreEl = document.getElementById("finalScore");
+        const pauseOverlay = document.getElementById("pauseOverlay");
+        const instructionsEl = document.getElementById("instructions");
 
-    class Ball {
-      constructor(magnet) {
-        this.length = 100;
-        this.angle = Math.random() * Math.PI * 2;
-        this.speed = currentSpeed;
-        this.rotation = this.angle;
-        this.released = false;
-        this.attachedMagnet = magnet;
+        // Game State
+        let score = 0;
+        let highScore = 0;
+        let currentSpeed = 0.02;
+        const maxSpeed = 0.08;
+        const gravity = 0.4;
+        let paused = false;
+        let gameStarted = false;
+        let soundEnabled = true;
+        let gameRunning = false;
 
-        this.x = magnet.x + Math.cos(this.angle) * this.length;
-        this.y = magnet.y + Math.sin(this.angle) * this.length;
-
-        this.vx = 0;
-        this.vy = 0;
-      }
-
-      update() {
-        if (!this.released) {
-          this.rotation += this.speed;
-          this.x = this.attachedMagnet.x + Math.cos(this.rotation) * this.length;
-          this.y = this.attachedMagnet.y + Math.sin(this.rotation) * this.length;
-        } else {
-          this.vy += gravity;
-          this.x += this.vx;
-          this.y += this.vy;
+        // Load high score
+        try {
+            highScore = parseInt(localStorage.getItem("magnetBallHighScore")) || 0;
+        } catch (e) {
+            highScore = 0;
         }
-      }
+        highScoreEl.textContent = highScore;
 
-      draw() {
-        if (!this.released) {
-          ctx.beginPath();
-          ctx.moveTo(this.attachedMagnet.x, this.attachedMagnet.y);
-          ctx.lineTo(this.x, this.y);
-          ctx.strokeStyle = "#888";
-          ctx.stroke();
+        // Audio System
+        let audioContext;
+        
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                soundEnabled = false;
+            }
         }
 
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, 12, 0, Math.PI * 2);
-        ctx.fillStyle = "#33ccff";
-        ctx.fill();
-      }
-
-      release() {
-        if (!this.released) {
-          this.released = true;
-          this.vx = Math.cos(this.rotation) * 10;
-          this.vy = Math.sin(this.rotation) * 10;
+        function playSound(frequency, duration, type = 'sine') {
+            if (!soundEnabled || !audioContext) return;
+            
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch (e) {
+                console.warn('Audio playback failed:', e);
+            }
         }
-      }
 
-      checkHit(magnet) {
-        const dx = this.x - magnet.x;
-        const dy = this.y - magnet.y;
-        return Math.sqrt(dx * dx + dy * dy) < magnet.radius + 12;
-      }
+        function playHitSound() {
+            playSound(800, 0.2);
+            setTimeout(() => playSound(600, 0.1), 50);
+        }
 
-      offScreen() {
-        return this.y > height + 100 || this.x < -100 || this.x > width + 100;
-      }
-    }
+        function playGameOverSound() {
+            playSound(400, 0.3);
+            setTimeout(() => playSound(300, 0.3), 150);
+            setTimeout(() => playSound(200, 0.5), 300);
+        }
 
-    function getReachableMagnet(fromMagnet) {
-      const minDistance = 120;
-      const maxDistance = 280;
-      let x, y, attempts = 0;
+        // Game Objects
+        class Magnet {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 20;
+                this.pulseOffset = Math.random() * Math.PI * 2;
+            }
 
-      do {
-        const angle = Math.random() * Math.PI * 2;
-        const distance = Math.random() * (maxDistance - minDistance) + minDistance;
-        x = fromMagnet.x + Math.cos(angle) * distance;
-        y = fromMagnet.y + Math.sin(angle) * distance;
-        attempts++;
-      } while ((x < 30 || x > width - 30 || y < 30 || y > height - 30) && attempts < 10);
+            draw() {
+                const time = Date.now() * 0.005;
+                const pulse = Math.sin(time + this.pulseOffset) * 0.15 + 1;
+                
+                // Outer glow
+                ctx.save();
+                ctx.globalAlpha = 0.6;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * pulse * 1.8, 0, Math.PI * 2);
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * pulse * 1.8);
+                gradient.addColorStop(0, 'rgba(255, 68, 68, 0.8)');
+                gradient.addColorStop(0.7, 'rgba(255, 68, 68, 0.3)');
+                gradient.addColorStop(1, 'rgba(255, 68, 68, 0)');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.restore();
 
-      return new Magnet(x, y);
-    }
+                // Main magnet
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * pulse, 0, Math.PI * 2);
+                const mainGradient = ctx.createRadialGradient(this.x - 5, this.y - 5, 0, this.x, this.y, this.radius);
+                mainGradient.addColorStop(0, '#ff6666');
+                mainGradient.addColorStop(1, '#cc2222');
+                ctx.fillStyle = mainGradient;
+                ctx.fill();
+                
+                // Highlight
+                ctx.beginPath();
+                ctx.arc(this.x - 4, this.y - 4, this.radius * 0.3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.fill();
+            }
+        }
 
-    let currentMagnet;
-    let nextMagnet;
-    let ball;
+        class Ball {
+            constructor(magnet) {
+                this.length = 120;
+                this.angle = 0;
+                this.speed = currentSpeed;
+                this.rotation = this.angle;
+                this.released = false;
+                this.attachedMagnet = magnet;
+                this.trail = [];
+                this.radius = 12;
 
-    function updateScore() {
-      score++;
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem("highScore", highScore);
-      }
-      scoreDisplay.textContent = `Score: ${score} (High: ${highScore})`;
-    }
+                this.x = magnet.x + Math.cos(this.angle) * this.length;
+                this.y = magnet.y + Math.sin(this.angle) * this.length;
 
-    function showGameOver() {
-      gameOverDisplay.style.display = "block";
-      setTimeout(() => {
-        gameOverDisplay.style.display = "none";
-        resetGame();
-      }, 1500);
-    }
+                this.vx = 0;
+                this.vy = 0;
+            }
 
-    function resetGame() {
-      score = 0;
-      currentSpeed = 0.02;
-      scoreDisplay.textContent = `Score: 0 (High: ${highScore})`;
-      currentMagnet = new Magnet(width / 2, height / 2);
-      nextMagnet = getReachableMagnet(currentMagnet);
-      ball = new Ball(currentMagnet);
-    }
+            update() {
+                if (!this.released) {
+                    this.rotation += this.speed;
+                    this.x = this.attachedMagnet.x + Math.cos(this.rotation) * this.length;
+                    this.y = this.attachedMagnet.y + Math.sin(this.rotation) * this.length;
+                } else {
+                    this.vy += gravity;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    
+                    // Add to trail
+                    this.trail.push({x: this.x, y: this.y});
+                    if (this.trail.length > 8) {
+                        this.trail.shift();
+                    }
+                }
+            }
 
-   function gameLoop() {
-  if (!paused) {
-    ctx.clearRect(0, 0, width, height);
-    currentMagnet.draw();
-    nextMagnet.draw();
-    ball.update();
-    ball.draw();
+            draw() {
+                // Draw trail for released ball
+                if (this.released && this.trail.length > 1) {
+                    for (let i = 0; i < this.trail.length - 1; i++) {
+                        const alpha = (i / this.trail.length) * 0.5;
+                        ctx.globalAlpha = alpha;
+                        ctx.beginPath();
+                        ctx.moveTo(this.trail[i].x, this.trail[i].y);
+                        ctx.lineTo(this.trail[i + 1].x, this.trail[i + 1].y);
+                        ctx.strokeStyle = '#33ccff';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    }
+                    ctx.globalAlpha = 1;
+                }
 
-    if (ball.released && ball.checkHit(nextMagnet)) {
-      try {
-        hitSound.currentTime = 0;
-        hitSound.play();
-      } catch (e) {
-        console.warn("Sound error:", e);
-      }
+                // Draw connection line when attached
+                if (!this.released) {
+                    ctx.beginPath();
+                    ctx.moveTo(this.attachedMagnet.x, this.attachedMagnet.y);
+                    ctx.lineTo(this.x, this.y);
+                    ctx.strokeStyle = 'rgba(136, 136, 136, 0.8)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
 
-      updateScore();
+                // Draw ball glow
+                ctx.save();
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius + 8, 0, Math.PI * 2);
+                const glowGradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius + 8);
+                glowGradient.addColorStop(0, 'rgba(51, 204, 255, 0.8)');
+                glowGradient.addColorStop(1, 'rgba(51, 204, 255, 0)');
+                ctx.fillStyle = glowGradient;
+                ctx.fill();
+                ctx.restore();
 
-      if (currentSpeed < maxSpeed) {
-        currentSpeed += 0.005;
-        if (currentSpeed > maxSpeed) currentSpeed = maxSpeed;
-      }
+                // Main ball
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                const ballGradient = ctx.createRadialGradient(this.x - 3, this.y - 3, 0, this.x, this.y, this.radius);
+                ballGradient.addColorStop(0, '#66ddff');
+                ballGradient.addColorStop(1, '#0099cc');
+                ctx.fillStyle = ballGradient;
+                ctx.fill();
 
-      currentMagnet = nextMagnet;
-      nextMagnet = getReachableMagnet(currentMagnet);
-      ball = new Ball(currentMagnet);
-    }
+                // Highlight
+                ctx.beginPath();
+                ctx.arc(this.x - 3, this.y - 3, 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fill();
+            }
 
-    if (ball.offScreen()) {
-      showGameOver();
-      // ❌ DO NOT RETURN HERE
-      // return;
-    }
-  }
+            release() {
+                if (!this.released) {
+                    this.released = true;
+                    const power = 15;
+                    this.vx = Math.cos(this.rotation) * power;
+                    this.vy = Math.sin(this.rotation) * power;
+                    
+                    // Hide instructions after first shot
+                    if (!gameStarted) {
+                        gameStarted = true;
+                        instructionsEl.style.opacity = '0';
+                        setTimeout(() => {
+                            instructionsEl.style.display = 'none';
+                        }, 500);
+                    }
+                }
+            }
 
-  requestAnimationFrame(gameLoop);  // Always keep the loop running
-}
-    canvas.addEventListener("click", () => {
-      if (!ball.released) ball.release();
-    });
+            checkHit(magnet) {
+                const dx = this.x - magnet.x;
+                const dy = this.y - magnet.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance < magnet.radius + this.radius;
+            }
 
-    canvas.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      if (!ball.released) ball.release();
-    }, { passive: false });
+            offScreen() {
+                const margin = 100;
+                return this.y > height + margin || 
+                       this.x < -margin || 
+                       this.x > width + margin || 
+                       this.y < -margin;
+            }
+        }
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        paused = !paused;
-      }
-    });
+        // Game Functions
+        function getReachableMagnet(fromMagnet) {
+            const minDistance = 200;
+            const maxDistance = Math.min(width, height) * 0.45;
+            let x, y, attempts = 0;
+            const margin = 60;
 
-    // Initialize and start
-    resetGame();
-    gameLoop();
-  </script>
+            do {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * (maxDistance - minDistance) + minDistance;
+                x = fromMagnet.x + Math.cos(angle) * distance;
+                y = fromMagnet.y + Math.sin(angle) * distance;
+                attempts++;
+            } while ((x < margin || x > width - margin || y < margin || y > height - margin) && attempts < 30);
+
+            // Fallback position
+            if (attempts >= 30) {
+                x = Math.max(margin, Math.min(width - margin, width / 2 + (Math.random() - 0.5) * 300));
+                y = Math.max(margin, Math.min(height - margin, height / 2 + (Math.random() - 0.5) * 300));
+            }
+
+            return new Magnet(x, y);
+        }
+
+        let currentMagnet;
+        let nextMagnet;
+        let ball;
+
+        function updateScore() {
+            score++;
+            if (score > highScore) {
+                highScore = score;
+                try {
+                    localStorage.setItem("magnetBallHighScore", highScore);
+                } catch (e) {
+                    console.warn('Could not save high score');
+                }
+                highScoreEl.textContent = highScore;
+            }
+            currentScoreEl.textContent = score;
+            
+            // Increase speed gradually
+            if (currentSpeed < maxSpeed) {
+                currentSpeed += 0.004;
+                if (currentSpeed > maxSpeed) currentSpeed = maxSpeed;
+            }
+            
+            // Update speed indicator
+            const speedPercent = ((currentSpeed - 0.02) / (maxSpeed - 0.02)) * 100;
+            speedFillEl.style.width = Math.max(0, Math.min(100, speedPercent)) + '%';
+        }
+
+        function createHitEffect(x, y) {
+            // Visual hit effect using canvas
+            const particles = [];
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 30,
+                    maxLife: 30
+                });
+            }
+            
+            // Add particles to global array for rendering
+            if (!window.hitParticles) window.hitParticles = [];
+            window.hitParticles.push(...particles);
+        }
+
+        function drawHitParticles() {
+            if (!window.hitParticles) return;
+            
+            ctx.save();
+            window.hitParticles = window.hitParticles.filter(particle => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life--;
+                
+                const alpha = particle.life / particle.maxLife;
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = '#ffdd44';
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                return particle.life > 0;
+            });
+            ctx.restore();
+        }
+
+        function showGameOver() {
+            gameRunning = false;
+            playGameOverSound();
+            finalScoreEl.textContent = `Final Score: ${score}`;
+            gameOverOverlay.style.display = 'flex';
+        }
+
+        function resetGame() {
+            score = 0;
+            currentSpeed = 0.02;
+            gameStarted = false;
+            gameRunning = true;
+            paused = false;
+            currentScoreEl.textContent = "0";
+            speedFillEl.style.width = '0%';
+            
+            // Clear particles
+            window.hitParticles = [];
+            
+            // Show instructions again
+            instructionsEl.style.display = 'block';
+            instructionsEl.style.opacity = '1';
+            
+            // Reset game objects
+            currentMagnet = new Magnet(width / 2, height / 2);
+            nextMagnet = getReachableMagnet(currentMagnet);
+            ball = new Ball(currentMagnet);
+            
+            // Hide overlays
+            gameOverOverlay.style.display = 'none';
+            pauseOverlay.style.display = 'none';
+        }
+
+        function togglePause() {
+            if (!gameRunning) return;
+            paused = !paused;
+            pauseOverlay.style.display = paused ? 'flex' : 'none';
+        }
+
+        function gameLoop() {
+            // Clear canvas with gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, '#0c0c0c');
+            gradient.addColorStop(0.5, '#1a1a2e');
+            gradient.addColorStop(1, '#16213e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+            
+            if (gameRunning && !paused) {
+                // Update and draw game objects
+                ball.update();
+                
+                // Check hit with next magnet
+                if (ball.released && ball.checkHit(nextMagnet)) {
+                    playHitSound();
+                    createHitEffect(nextMagnet.x, nextMagnet.y);
+                    updateScore();
+
+                    // Create new target and reset ball
+                    currentMagnet = nextMagnet;
+                    nextMagnet = getReachableMagnet(currentMagnet);
+                    ball = new Ball(currentMagnet);
+                }
+
+                // Check game over
+                if (ball.released && ball.offScreen()) {
+                    showGameOver();
+                }
+            }
+            
+            // Always draw game objects (even when paused)
+            if (currentMagnet) currentMagnet.draw();
+            if (nextMagnet) nextMagnet.draw();
+            if (ball) ball.draw();
+            
+            // Draw hit particles
+            drawHitParticles();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event Listeners
+        function handleRelease() {
+            if (gameRunning && !paused && ball && !ball.released) {
+                // Initialize audio on first interaction
+                if (!audioContext) {
+                    initAudio();
+                }
+                ball.release();
+            }
+        }
+
+        canvas.addEventListener("click", handleRelease);
+        canvas.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            handleRelease();
+        }, { passive: false });
+
+        // Control buttons
+        document.getElementById('pauseBtn').addEventListener('click', togglePause);
+        
+        document.getElementById('soundBtn').addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        });
+        
+        document.getElementById('restartBtn2').addEventListener('click', resetGame);
+        document.getElementById('restartBtn').addEventListener('click', resetGame);
+
+        // Keyboard controls
+        document.addEventListener("keydown", (e) => {
+            switch(e.key) {
+                case "Escape":
+                    togglePause();
+                    break;
+                case " ":
+                    e.preventDefault();
+                    handleRelease();
+                    break;
+                case "r":
+                case "R":
+                    resetGame();
+                    break;
+            }
+        });
+
+        // Window resize handler
+        window.addEventListener("resize", () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            
+            // Reposition game objects if they're off screen
+            if (currentMagnet) {
+                currentMagnet.x = Math.max(60, Math.min(currentMagnet.x, width - 60));
+                currentMagnet.y = Math.max(60, Math.min(currentMagnet.y, height - 60));
+            }
+            if (nextMagnet) {
+                nextMagnet.x = Math.max(60, Math.min(nextMagnet.x, width - 60));
+                nextMagnet.y = Math.max(60, Math.min(nextMagnet.y, height - 60));
+            }
+        });
+
+        // Prevent context menu
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // Prevent zoom on double tap (mobile)
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Pause game when tab is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && gameRunning && !paused) {
+                togglePause();
+            }
+        });
+
+        // Initialize game
+        function initGame() {
+            resetGame();
+            gameLoop();
+        }
+
+        // Start the game when page loads
+        window.addEventListener('load', initGame);
+
+        // Also start immediately if page is already loaded
+        if (document.readyState === 'complete') {
+            initGame();
+        }
+    </script>
 </body>
 </html>
