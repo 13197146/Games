@@ -6,8 +6,9 @@
     },
     {
       "src": "/endlessrunner",
-      "dest": "/games/endlessrunner.html"
+      "dest": "/games/tailwind.html"
     },
+    
     {
       "src": "/games/(.*)",
       "dest": "/games/$1"
