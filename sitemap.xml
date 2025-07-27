@@ -1,44 +1,51 @@
-# 2D Retro Games - Free Online Gaming
-# Website: https://2dretrogames.vercel.app
-# Contact: [your-email@example.com]
-
-User-agent: *
-Allow: /
-Allow: /games/
-Allow: /games/*.html
-
-# Popular game pages (for reference)
-# https://2dretrogames.vercel.app/games/endlessrunner.html
-# https://2dretrogames.vercel.app/games/lanehopper.html
-# https://2dretrogames.vercel.app/games/snakesprint.html
-# https://2dretrogames.vercel.app/games/gemcrush.html
-# https://2dretrogames.vercel.app/games/tailwind.html
-# https://2dretrogames.vercel.app/games/magnetball.html
-
-# Allow static assets that browsers need
-Allow: *.css
-Allow: *.js
-Allow: *.png
-Allow: *.jpg
-Allow: *.gif
-Allow: *.ico
-
-# Block development/config files (optional)
-Disallow: /admin/
-Disallow: /.git/
-Disallow: /node_modules/
-Disallow: /vercel.json/
-
-# Always allow these important files
-Allow: /sitemap.xml
-Allow: /robots.txt
-
-# Crawl delay (be nice to search engines)
-Crawl-delay: 1
-
-# Sitemap location
-Sitemap: https://2dretrogames.vercel.app/sitemap.xml
-
-# Additional info
-# Last updated: 2024-01-20
-# Games available: Endless Runner, Lane Hopper, Snake Sprint, Gem Crush, and more!
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://2dretrogames.vercel.app/</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/endlessrunner.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/lanehopper.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/gemcrush.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/lavadash.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/snakesprint.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/magnetball.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/tailwind.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>
