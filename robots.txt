@@ -1,3 +1,41 @@
+# 2D Retro Games - Free Online Gaming
+# Website: https://2dretrogames.vercel.app
+# Contact: [your-email@example.com]
+
 User-agent: *
 Allow: /
+Allow: /games/
+Allow: /games/*.html
+
+# Popular game pages (for reference)
+# https://2dretrogames.vercel.app/games/endlessrunner.html
+# https://2dretrogames.vercel.app/games/lanehopper.html
+# https://2dretrogames.vercel.app/games/snakesprint.html
+# https://2dretrogames.vercel.app/games/gemcrush.html
+
+# Allow static assets that browsers need
+Allow: *.css
+Allow: *.js
+Allow: *.png
+Allow: *.jpg
+Allow: *.gif
+Allow: *.ico
+
+# Block development/config files (optional)
+Disallow: /admin/
+Disallow: /.git/
+Disallow: /node_modules/
+
+# Always allow these important files
+Allow: /sitemap.xml
+Allow: /robots.txt
+
+# Crawl delay (be nice to search engines)
+Crawl-delay: 1
+
+# Sitemap location
 Sitemap: https://2dretrogames.vercel.app/sitemap.xml
+
+# Additional info
+# Last updated: 2024-01-20
+# Games available: Endless Runner, Lane Hopper, Snake Sprint, Gem Crush, and more!
