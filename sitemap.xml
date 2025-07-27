@@ -1,58 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-    <url>
-        <loc>https://2dretrogames.vercel.app/</loc>
-        <changefreq>monthly</changefreq>
-        <priority>1.0</priority>
-    </url>
-
-    <url>
-        <loc>https://2dretrogames.vercel.app/games/lanehopper.html</loc>
-        <changefreq>monthly</changefreq>
-        <priority>1.0</priority>
-    </url>
-
-    <url>
-        <loc>https://2dretrogames.vercel.app/games/gemcrush.html</loc>
-        <changefreq>monthly</changefreq>
-        <priority>1.0</priority>
-    </url>
-
-    <url>
-        <loc>https://2dretrogames.vercel.app/games/lavadash.html</loc>
-        <changefreq>monthly</changefreq>
-        <priority>1.0</priority>
-    </url>
-
-    <url>
-        <loc>https://2dretrogames.vercel.app/games/snakesprint.html</loc>
-        <changefreq>monthly</changefreq>
-        <priority>1.0</priority>
-    </url>
-
-    <url>
-        <loc>https://2dretrogames.vercel.app/games/magnetball.html</loc>
-        <changefreq>monthly</changefreq>
-        <priority>1.0</priority>
-    </url>
-
-    <url>
-        <loc>https://2dretrogames.vercel.app/games/tailwind.html</loc>
-        <changefreq>monthly</changefreq>
-        <priority>1.0</priority>
-    </url>
-
-    <url>
-        <loc>https://2dretrogames.vercel.app/games/sitemap.xml</loc>
-        <changefreq>monthly</changefreq>
-        <priority>0.5</priority>
-    </url>
-
-    <url>
-        <loc>https://2dretrogames.vercel.app/games/robots.txt</loc>
-        <changefreq>monthly</changefreq>
-        <priority>0.5</priority>
-    </url>
-
+  <url>
+    <loc>https://2dretrogames.vercel.app/</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/endlessrunner.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/lanehopper.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/gemcrush.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/lavadash.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/snakesprint.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/magnetball.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2dretrogames.vercel.app/games/tailwind.html</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>
